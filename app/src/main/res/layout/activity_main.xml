@@ -52,21 +52,32 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom|end"
     android:layout_margin="16dp"
-    android:background="@color/colorPrimary"/>
+    android:background="@color/colorPrimary"
+         android:src="@drawable/menu_add"/>
      </android.support.design.widget.CoordinatorLayout>
-     <!--   <fragment
+
+
+      <!--  <fragment
             android:id="@+id/navigation_drawer"
             android:layout_width="@dimen/navigation_drawer_width"
             android:layout_height="match_parent"
             android:layout_gravity="start"
             android:name="com.example.cyc.downloadproject.NavigationDrawerFragment"
-
             tools:layout="@layout/fragment_navigation_drawer" />-->
+
+
+    <!-- <fragment
+            android:id="@+id/navigation_drawer"
+            android:layout_width="@dimen/navigation_drawer_width"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:name="com.example.cyc.downloadproject.NavigationDrawerFragment"
+            tools:layout="@layout/fragment_navigation_drawer" />
 
         <android.support.design.widget.NavigationView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_gravity="start"/>
+            android:layout_gravity="start"/>-->
 
 
     </android.support.v4.widget.DrawerLayout>

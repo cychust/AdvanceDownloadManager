@@ -2,21 +2,20 @@ package com.example.cyc.downloadproject;
 
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
-import android.view.MenuItem;
+
 
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
+
 import android.widget.ExpandableListView;
 
 
-import android.support.v4.app.Fragment;
+
 
 import com.example.cyc.downloadproject.Adapter.ExpandableListAdapter;
 
@@ -42,9 +41,9 @@ public class NavigationDrawerFragment extends Fragment {
      */
 
     private ExpandableListView expandableListView;
-    private ExpandableListAdapter listAdapter;
-    private List<String> listDataHeader;
-    HashMap<String, List<String>> listDataChild;
+    private ExpandableListAdapter expandableListAdapter;
+    List<String>listDataHeader;
+    HashMap<String,List<String>> listDataChild;
 
     private int mCurrentSelectedPosition = 0;
 
@@ -54,27 +53,21 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        prepareListData();
+      //  selectItem(mCurrentSelectedPosition);
 
-     //   selectItem(mCurrentSelectedPosition);
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
-        View view=inflater.inflate(R.layout.fragment_navigation_drawer,container,false);
-        expandableListView=(ExpandableListView)view.findViewById(R.id.expandableView);
-        listAdapter = new ExpandableListAdapter(getActivity(), listDataHeader, listDataChild);
-        expandableListView.setAdapter(listAdapter);
-
-    /*    mDrawerListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
+    /*    mDrawerListView = (ListView) inflater.inflate(
+                R.layout.fragment_navigation_drawer, container, false);
+        mDrawerListView.setOnItemClickListener( new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 selectItem(position);
             }
         });
-
         mDrawerListView.setAdapter(new ArrayAdapter<String>(
                 getActivity(),
                 R.layout.fragment_drawer_content,
@@ -90,19 +83,25 @@ public class NavigationDrawerFragment extends Fragment {
                 selectItem(position);
             }
         });*/
-        return view;
+    prepareListData();
+      View view =inflater.inflate(R.layout.fragment_navigation_drawer,container,false);
+    assert view!=null;
+expandableListView=(ExpandableListView)view.findViewById(R.id.expandableView);
+        expandableListAdapter =new ExpandableListAdapter(getActivity(),listDataHeader,listDataChild);
+        expandableListView.setAdapter(expandableListAdapter);
+        return expandableListView;
     }
 
 
 
     private void selectItem(int position) {
         mCurrentSelectedPosition = position;
-     /*   if (mDrawerListView != null) {
-            mDrawerListView.setItemChecked(position, true);
-        }
-        if (mCallbacks != null) {
-            mCallbacks.onNavigationDrawerItemSelected(position);
-        }*/
+       // if (mDrawerListView != null) {
+      //      mDrawerListView.setItemChecked(position, true);
+       // }
+       // if (mCallbacks != null) {
+      //      mCallbacks.onNavigationDrawerItemSelected(position);
+     //   }
 
     }
 
@@ -110,7 +109,7 @@ public class NavigationDrawerFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         try {
-            mCallbacks = (NavigationDrawerCallbacks) activity;
+        //    mCallbacks = (NavigationDrawerCallbacks) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException("Activity must implement NavigationDrawerCallbacks.");
         }
@@ -119,7 +118,7 @@ public class NavigationDrawerFragment extends Fragment {
     @Override
     public void onDetach() {
         super.onDetach();
-        mCallbacks = null;
+   //     mCallbacks = null;
     }
 
 
@@ -130,17 +129,7 @@ public class NavigationDrawerFragment extends Fragment {
         super.onCreateOptionsMenu(menu, inflater);
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-     /*   if (item.getItemId() == R.id.action_exit) {
-            Intent intent = new Intent(getActivity(), MusicService.class);
-            getActivity().stopService(intent);
-            System.exit(0);
 
-        }*/
-
-        return super.onOptionsItemSelected(item);
-    }
     /**
      * Callbacks interface that all activities using this fragment must implement.
      */

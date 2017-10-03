@@ -16,7 +16,7 @@ import android.widget.Toast;
 import com.example.cyc.downloadproject.Interface.DownloadListener;
 import com.example.cyc.downloadproject.MainActivity;
 import com.example.cyc.downloadproject.R;
-import com.example.cyc.downloadproject.ThreadTask.DownloadTask;
+import com.example.cyc.downloadproject.ThreadTask.DownloadTaskAll;
 
 import java.io.File;
 
@@ -25,42 +25,56 @@ import java.io.File;
  */
 
 public class DownloadService extends Service {
-    private DownloadTask downloadTask;
+    private DownloadTaskAll downloadTaskAll;
 
     private String downloadUrl;
+    private long progre=0;
 
+    public static interface IDownloadListenner{
+        void initView(int progress,String url);
+    }
     private DownloadListener listener =new DownloadListener() {
         @Override
-        public void onProgress(int progress) {
-            getNotificationManager().notify(1,getNotification("Downloading...",progress));
+        public void onProgress(int progress, String url) {
+            IDownloadListenner iDownloadListenner;
+
+
+                Intent intent = new Intent();
+                intent.putExtra("progress", progress);
+                intent.putExtra("Url", url);
+                intent.setAction("com.example.cyc.progress");
+                sendBroadcast(intent);
         }
 
         @Override
-        public void onSuccess() {
-            downloadTask=null;
+        public void onSuccess(String url) {
+            downloadTaskAll=null;
             stopForeground(true);
             getNotificationManager().notify(1,getNotification("Download Success",-1));
 
         }
 
         @Override
-        public void onFailed() {
-            downloadTask=null;
+        public void onFailed(String url) {
+            downloadTaskAll=null;
             stopForeground(true);
             getNotificationManager().notify(1,getNotification("Download Failed",-1));
+            Toast.makeText(DownloadService.this,"response",Toast.LENGTH_SHORT).show();
         }
 
         @Override
-        public void onPause() {
-            downloadTask=null;
+        public void onPaused(String url) {
+            downloadTaskAll=null;
         }
 
         @Override
-        public void onCanceled() {
-            downloadTask=null;
+        public void onCanceled(String url) {
+            downloadTaskAll=null;
             stopForeground(true);
         }
+
     };
+
 
     private DownloadBinder mBinder =new DownloadBinder();
 
@@ -69,24 +83,24 @@ public class DownloadService extends Service {
     public IBinder onBind(Intent intent) {
         return mBinder;
     }
-    class DownloadBinder extends Binder{
+    public class DownloadBinder extends Binder{
         public void  startDownload(String url){
-            if(downloadTask==null){
+            if(downloadTaskAll==null){
                 downloadUrl=url;
-                downloadTask=new DownloadTask(listener);
-                downloadTask.execute(downloadUrl);
+                downloadTaskAll=new DownloadTaskAll(downloadUrl,listener);
+                downloadTaskAll.download(downloadUrl,listener);
                 startForeground(1,getNotification("Downloading...",0));
                 Toast.makeText(DownloadService.this,"Downloading...",Toast.LENGTH_SHORT).show();
             }
         }
         public void pauseDownload(){
-            if(downloadTask!=null){
-                downloadTask.pauseDownload();
+            if(downloadTaskAll!=null){
+                downloadTaskAll.pausedDownload();
             }
         }
         public void cancelDownload(){
-            if(downloadTask!=null){
-                downloadTask.cancelDownload();
+            if(downloadTaskAll!=null){
+                downloadTaskAll.cancelDownload();
             }
             else {
                 if(downloadUrl!=null){
@@ -122,5 +136,10 @@ public class DownloadService extends Service {
     }
     private NotificationManager getNotificationManager(){
         return (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 }

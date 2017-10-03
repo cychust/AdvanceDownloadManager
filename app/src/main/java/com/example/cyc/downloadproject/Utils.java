@@ -1,6 +1,12 @@
 package com.example.cyc.downloadproject;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
+
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 /**
  * Created by cyc on 17-10-1.
@@ -19,7 +25,7 @@ public class Utils {
 
    public static int getCategory(String filename){
         String suffix;
-        suffix=filename.substring(filename.lastIndexOf("."));
+        suffix=filename.substring(filename.lastIndexOf(".")+1);
         if (suffix.equals("apk")){
             return APK;
         }
@@ -41,5 +47,33 @@ public class Utils {
         else {
             return OTHER;
         }
+    }
+    public static void loadconfig(File configFile){
+
+
+    }
+     public static long getContentLength(String downloadUrl) throws IOException {
+       /* URL url=new URL(downloadUrl);
+        HttpURLConnection connection=(HttpURLConnection)url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        int reponseCode=connection.getResponseCode();
+        if (reponseCode==200){
+            long contentLength=connection.getContentLength();
+            listener.getMax();
+            return contentLength;
+        }
+        listener.onFailed();*/
+        OkHttpClient client=new OkHttpClient();
+        Request request=new Request.Builder().url(downloadUrl).build();
+        Response response=client.newCall(request).execute();
+        if (response!=null){
+            long contentlength=response.body().contentLength();
+            response.body().close();
+
+            return contentlength;
+        }
+
+        return 0;
     }
 }

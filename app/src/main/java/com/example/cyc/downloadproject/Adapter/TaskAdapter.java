@@ -5,8 +5,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.cyc.downloadproject.Data.AppConstant;
 import com.example.cyc.downloadproject.R;
 
 import com.example.cyc.downloadproject.URL.URLDownload;
@@ -26,11 +29,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
         ImageView downloadorpause;
         TextView filename;
         ImageView fileCategory;
+        LinearLayout container;
+        ProgressBar progressBar;
         public ViewHolder(View view){
             super(view);
             downloadorpause=(ImageView)view.findViewById(R.id.download_pause);
             filename=(TextView)view.findViewById(R.id.file_name);
             fileCategory=(ImageView)view.findViewById(R.id.file_category);
+            container=(LinearLayout)view.findViewById(R.id.ll_pb);
+            progressBar=(ProgressBar)view.findViewById(R.id.progressBar);
         }
 
 
@@ -50,7 +57,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         URLDownload task=tasklist.get(position);
-        String filename=task.URLaddress.substring(task.URLaddress.lastIndexOf("/"));
+        String filename=task.URLaddress.substring(task.URLaddress.lastIndexOf("/")+1);
         if(Utils.getCategory(filename)==Utils.APK){
             holder.fileCategory.setImageResource(R.drawable.ext_program);
         }else if (Utils.getCategory(filename)==Utils.TXT){
@@ -67,20 +74,33 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder> {
             holder.fileCategory.setImageResource(R.drawable.ext_video);
         }
         holder.filename.setText(filename);
-        switch (task.typeStatus){
+        switch (task.state){
             case 2:
                 holder.downloadorpause.setImageResource(R.drawable.stat_stop);
                 break;
             case 1:
                 holder.downloadorpause.setImageResource(R.drawable.stat_start);
                 break;
+            case 3:
+                holder.downloadorpause.setImageResource(R.drawable.stat_full);
             default:break;
 
         }
+        int progress=(int)(task.downloadLength*100/task.fileSize);
+        holder.progressBar.setProgress(progress);
+
     }
 
     @Override
     public int getItemCount() {
         return tasklist.size();
+    }
+    public void updateView(String url,long progress){
+        for (URLDownload task:tasklist){
+            if (task.URLaddress.equals(url)){
+                task.setDownloadLength(progress);
+            }
+        }
+        notifyDataSetChanged();
     }
 }

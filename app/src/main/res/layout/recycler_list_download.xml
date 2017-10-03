@@ -13,13 +13,25 @@
             android:src="@drawable/stat_start"/>
         <TextView
             android:id="@+id/file_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent" />
        <ImageView
+           android:layout_gravity="right"
            android:id="@+id/file_category"
-           android:src="@drawable/ext_other"
+           android:src="@drawable/ext_program"
            android:layout_width="wrap_content"
            android:layout_height="wrap_content" />
     </LinearLayout>
-
+<LinearLayout
+    android:id="@+id/ll_pb"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="?android:progressBarStyleHorizontal"/>
+</LinearLayout>
 </LinearLayout>
