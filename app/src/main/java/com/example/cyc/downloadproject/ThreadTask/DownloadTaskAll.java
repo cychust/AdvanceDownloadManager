@@ -33,7 +33,7 @@ public class DownloadTaskAll  {
     DownloadListener listener;
     private boolean isCancel;
     private boolean isPaused;
-    private List<DownloadTask> taskList;
+    private List<DownloadTask> taskList=new ArrayList<>();
     public DownloadTaskAll(String url,DownloadListener listener){
         this.url=url;
         this.listener=listener;
@@ -43,6 +43,7 @@ public class DownloadTaskAll  {
         for (int i=1;i<=AppConstant.THREAD_NUM;i++){
            // new DownLoadTask(listener,i).execute(url);
            DownloadTask task= new DownloadTask(url,i,listener);
+            taskList.add(task);
             task.start();
 
         }
@@ -51,15 +52,19 @@ public class DownloadTaskAll  {
     public void pausedDownload(){
         isPaused=true;
         for (int i=0;i<AppConstant.THREAD_NUM;i++){
-            taskList.get(i).pausedThread();
+            DownloadTask task=taskList.get(i);
+            task.pausedThread();
 
-        }//listener.onPaused(url);
+        }
+        listener.onPaused(url);
+        //listener.onPaused(url);
     }
     public void cancelDownload(){
         isCancel=true;
         for (int i=0;i<AppConstant.THREAD_NUM;i++){
             taskList.get(i).cancelThread();
         }
+        listener.onCanceled(url);
        // listener.onCanceled(url);
     }
 }

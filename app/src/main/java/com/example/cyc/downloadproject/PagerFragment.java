@@ -28,12 +28,12 @@ public class PagerFragment extends Fragment{
 
     private static final String ARG_PARAM1="param1";
     private int progress;
-    private List<URLDownload>lists;
-    public TaskAdapter adapter;
-    public static PagerFragment newInstance(List<URLDownload> lists) {
+    public ArrayList<URLDownload>lists=new ArrayList<>();
+    public TaskAdapter adapter=new TaskAdapter(lists);
+    public static PagerFragment newInstance(ArrayList<URLDownload> lists) {
         PagerFragment fragment = new PagerFragment();
         Bundle args = new Bundle();
-        args.putCharSequenceArrayList(ARG_PARAM1,(ArrayList)lists);
+        args.putSerializable(ARG_PARAM1,lists);
         fragment.setArguments(args);
         return fragment;
     }
@@ -41,25 +41,33 @@ public class PagerFragment extends Fragment{
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getArguments()!=null){
-            lists=(List) getArguments().getCharSequenceArrayList(ARG_PARAM1);
-        }
+
+
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-
+        if (lists==null){
+            lists=new ArrayList<>();
+        }
+        if(savedInstanceState!=null){
+            lists=(ArrayList)getArguments().getSerializable(ARG_PARAM1);
+        }
         View view=inflater.inflate(R.layout.fragment,null);
-        RecyclerView recyclerView=(RecyclerView)view.findViewById(R.id.recycler_view);
         adapter=new TaskAdapter(lists);
+        RecyclerView recyclerView=(RecyclerView)view.findViewById(R.id.recycler_view);
+
         recyclerView.setAdapter(adapter);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(linearLayoutManager);
+
 //        ProgressBar progressBar=(ProgressBar)recyclerView.findViewById(R.id.progressBar);
   //      progressBar.setProgress(progress);
         return view;
     }
-
+    public TaskAdapter getAdapter(){
+        return adapter;
+    }
 
 }

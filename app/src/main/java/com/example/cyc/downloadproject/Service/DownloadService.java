@@ -17,6 +17,7 @@ import com.example.cyc.downloadproject.Interface.DownloadListener;
 import com.example.cyc.downloadproject.MainActivity;
 import com.example.cyc.downloadproject.R;
 import com.example.cyc.downloadproject.ThreadTask.DownloadTaskAll;
+import com.example.cyc.downloadproject.URL.URLDownload;
 
 import java.io.File;
 
@@ -30,14 +31,10 @@ public class DownloadService extends Service {
     private String downloadUrl;
     private long progre=0;
 
-    public static interface IDownloadListenner{
-        void initView(int progress,String url);
-    }
+
     private DownloadListener listener =new DownloadListener() {
         @Override
         public void onProgress(int progress, String url) {
-            IDownloadListenner iDownloadListenner;
-
 
                 Intent intent = new Intent();
                 intent.putExtra("progress", progress);

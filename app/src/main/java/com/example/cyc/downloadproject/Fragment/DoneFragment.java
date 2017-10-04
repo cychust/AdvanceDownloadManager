@@ -25,11 +25,12 @@ public class DoneFragment extends Fragment  {
 
     private static final String ARG_PARAM1="param1";
     private int progress;
-    private List<URLDownload> lists;
-    public static com.example.cyc.downloadproject.PagerFragment newInstance(List<URLDownload> lists) {
-        com.example.cyc.downloadproject.PagerFragment fragment = new com.example.cyc.downloadproject.PagerFragment();
+    public ArrayList<URLDownload> lists=new ArrayList<>();
+    public TaskAdapter adapter=null;
+    public static DoneFragment newInstance(List<URLDownload> lists) {
+        DoneFragment fragment = new DoneFragment();
         Bundle args = new Bundle();
-        args.putCharSequenceArrayList(ARG_PARAM1,(ArrayList)lists);
+        args.putSerializable(ARG_PARAM1,(ArrayList)lists);
         fragment.setArguments(args);
         return fragment;
     }
@@ -37,25 +38,31 @@ public class DoneFragment extends Fragment  {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if(getArguments()!=null){
-            lists=(List) getArguments().getCharSequenceArrayList(ARG_PARAM1);
-        }
+
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-
+        if (lists==null){
+            lists=new ArrayList<>();
+        }
+        if(savedInstanceState!=null){
+            lists=(ArrayList)getArguments().getSerializable(ARG_PARAM1);
+        }
         View view=inflater.inflate(R.layout.fragment,null);
+        adapter=new TaskAdapter(lists);
         RecyclerView recyclerView=(RecyclerView)view.findViewById(R.id.recycler_view);
-        TaskAdapter adapter=new TaskAdapter(lists);
+
         recyclerView.setAdapter(adapter);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(linearLayoutManager);
+
 //        ProgressBar progressBar=(ProgressBar)recyclerView.findViewById(R.id.progressBar);
         //      progressBar.setProgress(progress);
         return view;
     }
+
 
 
 }

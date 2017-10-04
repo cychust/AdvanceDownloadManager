@@ -5,6 +5,6 @@ package com.example.cyc.downloadproject.Data;
  */
 
 public class AppConstant {
-    public static int THREAD_NUM=1;
+    public static int THREAD_NUM=3;
     public static int TASK_NUM;
 }

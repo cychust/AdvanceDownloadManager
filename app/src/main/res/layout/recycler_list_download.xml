@@ -23,6 +23,33 @@
            android:layout_width="wrap_content"
            android:layout_height="wrap_content" />
     </LinearLayout>
+    <LinearLayout
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <TextView
+        android:id="@+id/downloadLength"
+        android:gravity="left"
+        android:text="0kb/s"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:layout_height="wrap_content" />
+    <TextView
+        android:id="@+id/speed"
+        android:gravity="center_horizontal"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:text="0"
+        android:layout_height="wrap_content"/>
+        <TextView
+            android:id="@+id/fileSize"
+            android:gravity="right"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:text="0"
+            android:layout_height="wrap_content" />
+
+</LinearLayout>
 <LinearLayout
     android:id="@+id/ll_pb"
     android:orientation="horizontal"
@@ -34,4 +61,5 @@
         android:layout_height="wrap_content"
         style="?android:progressBarStyleHorizontal"/>
 </LinearLayout>
+
 </LinearLayout>

@@ -34,6 +34,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 
 import android.view.View;
@@ -47,9 +48,11 @@ import android.widget.Toast;
 
 import com.example.cyc.downloadproject.Adapter.ExpandableListAdapter;
 import com.example.cyc.downloadproject.Adapter.MyFragmentAdapter;
+import com.example.cyc.downloadproject.Adapter.TaskAdapter;
 import com.example.cyc.downloadproject.Data.AppConstant;
 import com.example.cyc.downloadproject.Fragment.DoneFragment;
 import com.example.cyc.downloadproject.Interface.DownloadListener;
+import com.example.cyc.downloadproject.SQL.DBHelper;
 import com.example.cyc.downloadproject.Service.DownloadService;
 import com.example.cyc.downloadproject.URL.URLDownload;
 
@@ -72,8 +75,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,ViewPager.OnPageChangeListener{
     private static final int COMPUTESIZE=1;
+    private static final int UPDATEVIEW=1;
     private ExpandableListAdapter listAdapter;
     private ExpandableListView expandableListView;
     private List<String> listDataHeader;
@@ -86,12 +90,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private FloatingActionButton floatingActionButton;
     private CharSequence filename;
     private String URLAddress;
-    private List<URLDownload> listDownloaded=new ArrayList<>();
-    private List<URLDownload> listDownloading=new ArrayList<>();
+    private ArrayList<URLDownload> listDownloaded=new ArrayList<URLDownload>();
+    private ArrayList<URLDownload> listDownloading=new ArrayList<URLDownload>();
     private DownloadService.DownloadBinder downloadBinder;
     private List<Fragment> fragments = new ArrayList<Fragment>();
     private MyReceive receiver=null;
     private PagerFragment downloadingFragment;
+    private DoneFragment doneFragment;
+    private Handler handler1;
+    private FragmentManager fragmentManager;
+    private MyFragmentAdapter fragmentPagerAdapter;
+    private List<String> titles = new ArrayList<String>();
+    private DBHelper dbHelper;
     private ServiceConnection connection=new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -112,8 +122,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-
-
+        dbhelperinit();
         initView();
         initViewPager();
         Intent intent=new Intent(this,DownloadService.class);
@@ -124,10 +133,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{
                     android.Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
         }
+        handler1=new Handler(){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                switch (msg.what){
+                    case UPDATEVIEW:
+                        if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment))
+                        {
+                            downloadingFragment.adapter.updateViewArray(listDownloading);
+
+                        }else {
+                            doneFragment.adapter.updateViewArray(listDownloaded);
+                        }
+                        break;
+                    default:break;
+                }
+            }
+        };
 
 
     }
 
+    public void dbhelperinit(){
+        dbHelper=new DBHelper(this);
+        dbHelper.getWritableDatabase();
+    }
     @Override
     protected void onDestroy() {
         unbindService(connection);
@@ -197,6 +228,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         };
         mDrawerToggle.syncState();
+        mTabLayout = (TabLayout) findViewById(R.id.tabs);
+        titles = new ArrayList<String>();
+        titles.add("任务");
+        titles.add("已下载");
+
+        for (int i = 0; i < titles.size(); i++) {
+            mTabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
+        }
+        listDownloading=new ArrayList<URLDownload>();
+        fragmentManager = getSupportFragmentManager();
+
     }
 
     @Override
@@ -282,14 +324,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             return;
                         }
                         final String url ="http://dldir1.qq.com/music/clntupate/QQMusic72282.apk";
-                                //"http://rpcs.myapp.com/myapp/rcps/d/10000609/com.tencent.qq.music_10000609_170926144928a.apk";
+                                //"https://wenku.baidu.com/browse/downloadrec?doc_id=df74fb90daef5ef7ba0d3c8f&
+                        // http://rpcs.myapp.com/myapp/rcps/d/10000609/com.tencent.qq.music_10000609_170926144928a.apk"
+                        // http://dldir1.qq.com/music/clntupate/QQMusic72282.apk;
                          final Handler handler=new Handler(){
                             @Override
                             public void handleMessage(Message msg) {
                                 if(msg.what==COMPUTESIZE) {
                                     long filesize=(long)msg.getData().getLong("contentLength");
                                     Toast.makeText(MainActivity.this,"all:"+filesize,Toast.LENGTH_SHORT).show();
-                                    start(new URLDownload(url, 1, 0, filesize));
+                                    long oldTime=System.currentTimeMillis();
+                                    start(new URLDownload(url, 1, 0, filesize,oldTime));
+                                    Message message=new Message();
+                                    message.what=UPDATEVIEW;
+                                    handler1.sendMessage(message);
                                 }
                             }
                         };
@@ -319,7 +367,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }
                         }).start();
-
+                        alertDialog.dismiss();
 
 
                     }
@@ -339,47 +387,94 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        if (state==2){
+            Message message=new Message();
+            message.what=UPDATEVIEW;
+            handler1.sendMessage(message);
+        }
+        else if (state==1){
+            Message message=new Message();
+            message.what=UPDATEVIEW;
+            handler1.sendMessage(message);
+        }
+    }
+
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+        Message message=new Message();
+        message.what=UPDATEVIEW;
+        handler1.sendMessage(message);
+    }
 
     private void start(URLDownload newTask){
         listDownloading.add(newTask);
+        downloadingFragment.lists.add(newTask);
+        downloadingFragment.adapter.notifyDataSetChanged();
         downloadBinder.startDownload(newTask.URLaddress);
 
     }
 
 
-
     private void initViewPager() {
-        mTabLayout = (TabLayout) findViewById(R.id.tabs);
-        final List<String> titles = new ArrayList<String>();
-        titles.add("任务");
-        titles.add("已下载");
 
-        for (int i = 0; i < titles.size(); i++) {
-            mTabLayout.addTab(mTabLayout.newTab().setText(titles.get(i)));
-        }
-        for (int i=0;i<listDownloading.size();i++){
-            URLDownload task=listDownloading.get(i);
-            if(task.done){
+        for (int i = 0; i < listDownloading.size(); i++) {
+            URLDownload task = listDownloading.get(i);
+            if (task.done) {
                 listDownloading.remove(i);
                 listDownloaded.add(task);
             }
         }
-        downloadingFragment=PagerFragment.newInstance(listDownloading);
-            fragments.add(downloadingFragment);
-            fragments.add(DoneFragment.newInstance(listDownloaded));
-      FragmentManager fragmentManager=getSupportFragmentManager();
-        MyFragmentAdapter fragmentPagerAdapter=new MyFragmentAdapter(fragments,titles,fragmentManager,MainActivity.this);
+        downloadingFragment = PagerFragment.newInstance(listDownloading);
+        fragments.add(downloadingFragment);
+        doneFragment=DoneFragment.newInstance(listDownloaded);
+        fragments.add(doneFragment);
+
+        fragmentPagerAdapter = new MyFragmentAdapter(fragments, titles, fragmentManager, MainActivity.this);
         //给ViewPager设置适配器
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         viewPager.setAdapter(fragmentPagerAdapter);
+        viewPager.setOnPageChangeListener(this);
         //将TabLayout和ViewPager关联起来。
         mTabLayout.setupWithViewPager(viewPager);
         //给TabLayout设置适配器
         mTabLayout.setTabsFromPagerAdapter(fragmentPagerAdapter);
-    }
+        fragmentPagerAdapter.setPrimaryItem(viewPager,0,downloadingFragment);
+        if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment)) {
 
-    static interface RecyclerViewListener{
-        void onListItemClicked(int position);
+           downloadingFragment.getAdapter().setOnItemClickListener(new TaskAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(View view, int position) {
+                    URLDownload task = listDownloading.get(position);
+                    switch (task.state) {
+                        case 1:
+                            task.state = 2;
+                            long currentTime = System.currentTimeMillis();
+                            long downloadTime = +(currentTime - task.oldTime);
+                            task.oldTime = currentTime;
+                            task.setDownTime(downloadTime);     //为了后面计算速度
+                            downloadBinder.pauseDownload();
+                            downloadingFragment.notify();
+                            downloadingFragment.adapter.notifyItemChanged(position);
+                            break;
+                        case 2:
+                            task.state = 1;
+                            long currentTim = System.currentTimeMillis();
+                            task.oldTime = currentTim;
+                            downloadBinder.startDownload(task.URLaddress);
+                            break;
+                    }
+                }
+            });
+            Log.d("viewOnclick","fail");
+        }
+
     }
 
     class MyReceive extends BroadcastReceiver {
@@ -393,27 +488,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 for (int i = 0; i < listDownloading.size(); i++) {
                     URLDownload task = listDownloading.get(i);
-
                     if (task.URLaddress.equals(url)) {
                         task.downloadLength += progress;
+                        long currentTime=System.currentTimeMillis();
+                        double speed=task.downloadLength/2/(currentTime-task.oldTime);
+                       downloadingFragment.adapter.updateView(url,task.downloadLength,speed);
 
-                       downloadingFragment.adapter.updateView(url,task.downloadLength);
-
-                        if (task.downloadLength == task.fileSize) {
+                        if (task.downloadLength == task.fileSize*2) {
                             String directory = Environment.getExternalStoragePublicDirectory
                                     (Environment.DIRECTORY_DOWNLOADS).getPath();
                             Toast.makeText(context, "download=file", Toast.LENGTH_SHORT).show();
+
                             String filename = url.substring(url.lastIndexOf("/") + 1);
                             try {
                                 BufferedOutputStream outputStream = new BufferedOutputStream(
                                         new FileOutputStream(directory + filename)
                                 );
+                                Toast.makeText(context, "wenjian整合", Toast.LENGTH_SHORT).show();
                                 for (int k = 1; k <= AppConstant.THREAD_NUM; k++) {
-                                    File file = new File(directory + filename + "_" + k);
+                                    File file = new File(directory +  "_" + k+filename );
                                     BufferedInputStream inputStream = new BufferedInputStream(
                                             new FileInputStream(file)
                                     );
-                                    int length = 0;
+                                    int length = -1;
                                     long count = 0;
                                     byte[] bytes = new byte[1024];
                                     while ((length = inputStream.read(bytes)) != -1) {
@@ -423,6 +520,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                             outputStream.flush();
                                         }
                                     }
+                                    outputStream.flush();
                                     inputStream.close();
                                     file.delete();
                                 }
@@ -433,6 +531,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
+                            task.state=3;
+                            listDownloaded.add(task);
+                            listDownloading.remove(task);
+                            Message message=new Message();
+                            message.what=UPDATEVIEW;
+                            handler1.sendMessage(message);
                         }
                     }
                 }

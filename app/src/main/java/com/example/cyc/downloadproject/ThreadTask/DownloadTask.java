@@ -2,6 +2,7 @@ package com.example.cyc.downloadproject.ThreadTask;
 
 import android.app.DownloadManager;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.example.cyc.downloadproject.Data.AppConstant;
@@ -36,8 +37,8 @@ public class DownloadTask extends Thread {
     private String url;
     private DownloadListener listener;
 
-    private boolean isPaused=false;
-    private boolean isCancel=false;
+    public boolean isPaused=false;
+    public boolean isCancel=false;
     private int taskNum;
 
     public DownloadTask(String url, int theadId, DownloadListener listener){
@@ -63,21 +64,20 @@ public class DownloadTask extends Thread {
             String filename = downloadUrl.substring(downloadUrl.lastIndexOf("/") + 1);
             String directory = Environment.getExternalStoragePublicDirectory
                     (Environment.DIRECTORY_DOWNLOADS).getPath();
-            file = new File(directory + filename);
+            file = new File(directory+"_"+threadId + filename);
             if (file.exists()) {
                 downloadedLength = file.length();
             }
             long allcontentLength = getContentLength(downloadUrl);
-            long contentLength;
-            contentLength = allcontentLength / AppConstant.THREAD_NUM;
-            if (threadId != AppConstant.THREAD_NUM) {
-                startIndex = (threadId - 1) * contentLength;
-                endIndex = (threadId) * contentLength-1;
-            }
+            long block;
+            block = allcontentLength / AppConstant.THREAD_NUM;
+
+                startIndex = (threadId - 1) * block;
+                endIndex = (threadId) * block-1;
             if(threadId == AppConstant.THREAD_NUM){
-                startIndex = (threadId - 1) * contentLength;
                 endIndex = allcontentLength-1;
             }
+            long start=startIndex+downloadedLength;
        /*     if (contentLength == 0) {
 
             } else if (contentLength == downloadedLength) {
@@ -94,18 +94,16 @@ public class DownloadTask extends Thread {
             BufferedReader reader = new BufferedReader(new InputStreamReader(is));*/
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
-                    .addHeader("RANGE", "bytes=" + startIndex+downloadedLength + "-"+endIndex)
+                    .addHeader("RANGE", "bytes=" + start + "-"+endIndex)
                     .url(downloadUrl)
                     .build();
             Response response = client.newCall(request).execute();
             if (response != null) {
-
                 is = response.body().byteStream();
-                saveFile = new RandomAccessFile(file, "rwd");
+                saveFile = new RandomAccessFile(file, "rw");
                 saveFile.seek(downloadedLength);
                 byte[] b = new byte[1024];
-                int total = 0;
-                int len = 0;
+                int len = -1;
                 while ((len = is.read(b)) != -1) {
                     if (isCancel) {
                         break;
@@ -114,15 +112,16 @@ public class DownloadTask extends Thread {
                         break;
                     }
                     else {
-
-                        saveFile.write(b,0,len);
-
-                            listener.onProgress(len, url);
+                        listener.onProgress(len, url);
+                        saveFile.write(b, 0, len);
                     }
 
                 }
                 response.body().close();
                // listener.getMax(url);
+            }
+            else {
+                Log.d("response",threadId+"filed");
             }
         }catch (Exception e){
             e.printStackTrace();
