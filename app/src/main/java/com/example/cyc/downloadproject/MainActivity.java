@@ -43,45 +43,34 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
 import android.widget.Toast;
 
-import com.example.cyc.downloadproject.Adapter.ExpandableListAdapter;
+
 import com.example.cyc.downloadproject.Adapter.MyFragmentAdapter;
 import com.example.cyc.downloadproject.Adapter.TaskAdapter;
-import com.example.cyc.downloadproject.Data.AppConstant;
+
 import com.example.cyc.downloadproject.Fragment.DoneFragment;
-import com.example.cyc.downloadproject.Interface.DownloadListener;
+
 import com.example.cyc.downloadproject.SQL.DBHelper;
+import com.example.cyc.downloadproject.SQL.Sqlite;
 import com.example.cyc.downloadproject.Service.DownloadService;
 import com.example.cyc.downloadproject.URL.URLDownload;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.IllegalFormatCodePointException;
+
 import java.util.List;
-import java.util.jar.Manifest;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener,ViewPager.OnPageChangeListener{
+
+public class MainActivity extends AppCompatActivity implements View.OnClickListener,ViewPager.OnPageChangeListener
+,TaskAdapter.OnItemClickListener{
     private static final int COMPUTESIZE=1;
-    private static final int UPDATEVIEW=1;
-    private ExpandableListAdapter listAdapter;
-    private ExpandableListView expandableListView;
-    private List<String> listDataHeader;
-    HashMap<String, List<String>> listDataChild;
+    private static final int UPDATEVIEW=2;
+    private static final int SETADAPTER=3;
+    private static final int UPDATESOMEVIEW=4;
     private Toolbar toolbar;
     private DrawerLayout drawerLayout;
     private TabLayout mTabLayout;
@@ -102,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MyFragmentAdapter fragmentPagerAdapter;
     private List<String> titles = new ArrayList<String>();
     private DBHelper dbHelper;
+    private Sqlite sqlite;
     private ServiceConnection connection=new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
@@ -122,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
-        dbhelperinit();
+
         initView();
         initViewPager();
         Intent intent=new Intent(this,DownloadService.class);
@@ -133,6 +123,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(MainActivity.this,new String[]{
                     android.Manifest.permission.WRITE_EXTERNAL_STORAGE},1);
         }
+
+        sqlite=new Sqlite(this);
+        receiver=new MyReceive();
+        IntentFilter filter=new IntentFilter();
+        filter.addAction("com.example.cyc.progress");
+        registerReceiver(receiver,filter);
+
         handler1=new Handler(){
             @Override
             public void handleMessage(Message msg) {
@@ -147,18 +144,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             doneFragment.adapter.updateViewArray(listDownloaded);
                         }
                         break;
+                    case SETADAPTER:
+                        if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment))
+                        {
+                            downloadingFragment.adapter.setOnItemClickListener(new TaskAdapter.OnItemClickListener() {
+                                @Override
+                                public void onItemClick(View view, int position) {
+                                    if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment)) {
+                                        Log.d("clickListener","success");
+                                        URLDownload task = listDownloading.get(position);
+                                        switch (task.state) {
+                                            case 1:
+                                                task.state = 2;
+                                                long currentTime = System.currentTimeMillis();
+                                                long downloadTime = +(currentTime - task.oldTime);
+                                                task.oldTime = currentTime;
+                                                task.setDownTime(downloadTime);     //为了后面计算速度
+                                                downloadBinder.pauseDownload(task.URLaddress);
+
+                                                downloadingFragment.adapter.notifyItemChanged(position);
+                                                break;
+                                            case 2:
+                                                task.state = 1;
+                                                long currentTim = System.currentTimeMillis();
+                                                task.oldTime = currentTim;
+                                                downloadBinder.startDownload(task.URLaddress,task.fileSize);
+                                                break;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    case UPDATESOMEVIEW:
+                        int position=msg.arg1;
+                        if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment))
+                        {
+                            downloadingFragment.adapter.updateViewSome(position,listDownloading);
+
+                        }else {
+                            doneFragment.adapter.updateViewSome(position,listDownloaded);
+                        }
                     default:break;
                 }
             }
         };
 
-
     }
 
-    public void dbhelperinit(){
-        dbHelper=new DBHelper(this);
-        dbHelper.getWritableDatabase();
-    }
+
     @Override
     protected void onDestroy() {
         unbindService(connection);
@@ -172,10 +205,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        receiver=new MyReceive();
-        IntentFilter filter=new IntentFilter();
-        filter.addAction("com.example.cyc.progress");
-        registerReceiver(receiver,filter);
+        listDownloading=sqlite.getURLDoanloading();
+        listDownloaded=sqlite.getURLDoanloaded();
     }
 
     @Override
@@ -188,13 +219,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             MainActivity.this.registerReceiver(receiver,filter);
         }
     }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        unregisterReceiver(receiver);
-    }
-
     @Override
     protected void onStop() {
         super.onStop();
@@ -241,6 +265,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
+    @Override
+    public void onItemClick(View view, int position) {
+        if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment)) {
+            Log.d("clickListener","success");
+            URLDownload task = listDownloading.get(position);
+            switch (task.state) {
+                case 1:
+                    task.state = 2;
+                    long currentTime = System.currentTimeMillis();
+                    long downloadTime = +(currentTime - task.oldTime);
+                    task.oldTime = currentTime;
+                    task.setDownTime(downloadTime);     //为了后面计算速度
+                    downloadBinder.cancelDownload();
+
+                    downloadingFragment.adapter.notifyItemChanged(position);
+                    break;
+                case 2:
+                    task.state = 1;
+                    long currentTim = System.currentTimeMillis();
+                    task.oldTime = currentTim;
+                    downloadBinder.startDownload(task.URLaddress,task.fileSize);
+                    break;
+            }
+        }
+    }
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
@@ -331,13 +380,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             @Override
                             public void handleMessage(Message msg) {
                                 if(msg.what==COMPUTESIZE) {
-                                    long filesize=(long)msg.getData().getLong("contentLength");
+                                    int filesize=(int)msg.getData().getLong("contentLength");
                                     Toast.makeText(MainActivity.this,"all:"+filesize,Toast.LENGTH_SHORT).show();
+                                    Log.d("all",filesize+"en");
                                     long oldTime=System.currentTimeMillis();
                                     start(new URLDownload(url, 1, 0, filesize,oldTime));
-                                    Message message=new Message();
+                                   /* Message message=new Message();
                                     message.what=UPDATEVIEW;
                                     handler1.sendMessage(message);
+                                    Message message1=new Message();
+                                    message1.what=SETADAPTER;
+                                    handler1.sendMessage(message1);*/
                                 }
                             }
                         };
@@ -346,22 +399,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             public void run() {
 
                                 try {
-
-                                    OkHttpClient client=new OkHttpClient();
-                                    Request request=new Request.Builder().url(url).build();
-                                Response response=client.newCall(request).execute();
-                                if (response!=null){
-
-                                    long contentL=response.body().contentLength();
+                                    long contentL=Utils.getContentLength(url);
                                     Message message=new Message();
                                     Bundle bundle=new Bundle();
                                     bundle.putLong("contentLength",contentL);
                                     message.what = COMPUTESIZE;
                                     message.setData(bundle);
-                                    response.body().close();
                                     handler.sendMessage(message);
 
-                                }
+
                             }catch (IOException e){
                                     e.printStackTrace();
                                 }
@@ -417,7 +463,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         listDownloading.add(newTask);
         downloadingFragment.lists.add(newTask);
         downloadingFragment.adapter.notifyDataSetChanged();
-        downloadBinder.startDownload(newTask.URLaddress);
+        downloadBinder.startDownload(newTask.URLaddress,newTask.fileSize);
 
     }
 
@@ -426,13 +472,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         for (int i = 0; i < listDownloading.size(); i++) {
             URLDownload task = listDownloading.get(i);
-            if (task.done) {
-                listDownloading.remove(i);
-                listDownloaded.add(task);
-            }
         }
         downloadingFragment = PagerFragment.newInstance(listDownloading);
         fragments.add(downloadingFragment);
+
         doneFragment=DoneFragment.newInstance(listDownloaded);
         fragments.add(doneFragment);
 
@@ -448,31 +491,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         fragmentPagerAdapter.setPrimaryItem(viewPager,0,downloadingFragment);
         if (fragmentPagerAdapter.getCurrentFragment().equals(downloadingFragment)) {
 
-           downloadingFragment.getAdapter().setOnItemClickListener(new TaskAdapter.OnItemClickListener() {
-                @Override
-                public void onItemClick(View view, int position) {
-                    URLDownload task = listDownloading.get(position);
-                    switch (task.state) {
-                        case 1:
-                            task.state = 2;
-                            long currentTime = System.currentTimeMillis();
-                            long downloadTime = +(currentTime - task.oldTime);
-                            task.oldTime = currentTime;
-                            task.setDownTime(downloadTime);     //为了后面计算速度
-                            downloadBinder.pauseDownload();
-                            downloadingFragment.notify();
-                            downloadingFragment.adapter.notifyItemChanged(position);
-                            break;
-                        case 2:
-                            task.state = 1;
-                            long currentTim = System.currentTimeMillis();
-                            task.oldTime = currentTim;
-                            downloadBinder.startDownload(task.URLaddress);
-                            break;
-                    }
-                }
-            });
-            Log.d("viewOnclick","fail");
         }
 
     }
@@ -482,66 +500,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onReceive(Context context, Intent intent) {
 
             if (intent.getAction().equals("com.example.cyc.progress")) {
+                String url = intent.getStringExtra("Url");
+                int progress = intent.getIntExtra("progress",0);
+                for (int i = 0; i < listDownloading.size(); i++) {
+                    URLDownload task = listDownloading.get(i);
+                    if (task.URLaddress.equals(url)) {
+                        task.downloadLength=progress*2;
+                        long currentTime=System.currentTimeMillis();
+                        double speed=task.downloadLength/(currentTime-task.oldTime);
+                       downloadingFragment.adapter.updateView(url,task.downloadLength,speed);
+                       if (task.downloadLength==task.fileSize*2){
+                            task.state=3;
+                            listDownloaded.add(task);
+                            listDownloading.remove(task);
+                      /*     Message message=new Message();
+                           message.what=UPDATESOMEVIEW;
+                           message.arg1=i;
+                           handler1.sendMessage(message);*/
+                        }
+                    }
+                }
+            }
+            /*else if (intent.getAction().equals("com.example.cyc.progress1")) {
                 Bundle bundle = intent.getExtras();
                 String url = bundle.getString("Url");
-                int progress = bundle.getInt("progress");
+                Long progress = bundle.getLong("progress");
 
                 for (int i = 0; i < listDownloading.size(); i++) {
                     URLDownload task = listDownloading.get(i);
                     if (task.URLaddress.equals(url)) {
-                        task.downloadLength += progress;
-                        long currentTime=System.currentTimeMillis();
-                        double speed=task.downloadLength/2/(currentTime-task.oldTime);
-                       downloadingFragment.adapter.updateView(url,task.downloadLength,speed);
-
-                        if (task.downloadLength == task.fileSize*2) {
-                            String directory = Environment.getExternalStoragePublicDirectory
-                                    (Environment.DIRECTORY_DOWNLOADS).getPath();
-                            Toast.makeText(context, "download=file", Toast.LENGTH_SHORT).show();
-
-                            String filename = url.substring(url.lastIndexOf("/") + 1);
-                            try {
-                                BufferedOutputStream outputStream = new BufferedOutputStream(
-                                        new FileOutputStream(directory + filename)
-                                );
-                                Toast.makeText(context, "wenjian整合", Toast.LENGTH_SHORT).show();
-                                for (int k = 1; k <= AppConstant.THREAD_NUM; k++) {
-                                    File file = new File(directory +  "_" + k+filename );
-                                    BufferedInputStream inputStream = new BufferedInputStream(
-                                            new FileInputStream(file)
-                                    );
-                                    int length = -1;
-                                    long count = 0;
-                                    byte[] bytes = new byte[1024];
-                                    while ((length = inputStream.read(bytes)) != -1) {
-                                        count += length;
-                                        outputStream.write(bytes, 0, length);
-                                        if ((count % 4096 == 0)) {
-                                            outputStream.flush();
-                                        }
-                                    }
-                                    outputStream.flush();
-                                    inputStream.close();
-                                    file.delete();
-                                }
-                                outputStream.flush();
-                                outputStream.close();
-                            } catch (FileNotFoundException e) {
-                                e.printStackTrace();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                            task.state=3;
-                            listDownloaded.add(task);
-                            listDownloading.remove(task);
-                            Message message=new Message();
-                            message.what=UPDATEVIEW;
-                            handler1.sendMessage(message);
-                        }
+                        task.fileSize = progress;
                     }
                 }
-
-            }
+            }*/
         }
     }
 

@@ -2,6 +2,8 @@ package com.example.cyc.downloadproject.ThreadTask;
 
 import android.app.DownloadManager;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -37,12 +39,15 @@ public class DownloadTask extends Thread {
     private String url;
     private DownloadListener listener;
 
+    private Handler handler;
+
     public boolean isPaused=false;
     public boolean isCancel=false;
     private int taskNum;
 
-    public DownloadTask(String url, int theadId, DownloadListener listener){
-        this.listener=listener;
+    public DownloadTask(String url, int theadId, Handler handler){
+       // this.listener=listener;
+        this.handler=handler;
         this.threadId=theadId;
         this.url=url;
 
@@ -69,6 +74,8 @@ public class DownloadTask extends Thread {
                 downloadedLength = file.length();
             }
             long allcontentLength = getContentLength(downloadUrl);
+
+         //   listener.onStart(allcontentLength);
             long block;
             block = allcontentLength / AppConstant.THREAD_NUM;
 
@@ -112,8 +119,13 @@ public class DownloadTask extends Thread {
                         break;
                     }
                     else {
-                        listener.onProgress(len, url);
                         saveFile.write(b, 0, len);
+                      //  listener.onProgress(len, url);
+                        Message message=new Message();
+                        message.what=5;
+                        message.obj=url;
+                        message.arg1=len;
+                        handler.sendMessage(message);
                     }
 
                 }

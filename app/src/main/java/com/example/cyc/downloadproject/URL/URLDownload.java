@@ -15,27 +15,30 @@ public class URLDownload implements Serializable{
     public String URLaddress;
     public int state=1;
     public long downTime=0;
-    public long fileSize=0;
-  // public File tempFile;
- //  public Context context;
+    public int fileSize=0;
     public double speed=0.0;
-    public long downloadLength=0;
-    public boolean done;
+    public int downloadLength=0;
     public long oldTime;
-    public URLDownload(String URLaddress,int state,long downloadLength,long fileSize,long oldTime){
+    public URLDownload(String URLaddress,int state,int downloadLength,int fileSize,long oldTime){
 
         this.downloadLength=downloadLength;
         this.fileSize=fileSize;
         this.state=state;
         this.URLaddress=URLaddress;
-        done=downloadLength==fileSize?true:false;
         this.oldTime=oldTime;
-        if (done){
-            state=3;
-        }
+
 
     }
 
+    public URLDownload(String URLaddress,int state,long downTime,int fileSize,double speed,int downloadLength,long oldTime){
+        this.URLaddress=URLaddress;
+        this.fileSize=fileSize;
+        this.oldTime=oldTime;
+        this.state=state;
+        this.downTime=downTime;
+        this.speed=speed;
+        this.downloadLength=downloadLength;
+    }
     public void setDownTime(long downTime) {
         this.downTime = downTime;
     }
@@ -44,16 +47,14 @@ public class URLDownload implements Serializable{
         this.oldTime = oldTime;
     }
 
-    public void setFileSize(long fileSize){
+    public void setFileSize(int fileSize){
         this.fileSize=fileSize;
     }
     public void setURLaddress(String urLaddress){
         this.URLaddress=urLaddress;
     }
 
-    public void setDone(boolean done) {
-        this.done = done;
-    }
+
 
     public void setSpeed(double speed) {
         this.speed = speed;
@@ -63,27 +64,37 @@ public class URLDownload implements Serializable{
         this.state = state;
     }
 
-    public void setDownloadLength(long downloadLength) {
+    public void setDownloadLength(int downloadLength) {
         this.downloadLength = downloadLength;
     }
 
- /*   @Override
-    public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(URLaddress);
-        public int state=1;
-        public long downTime=0;
-        public long fileSize=0;
-        // public File tempFile;
-        //  public Context context;
-        public double speed=0.0;
-        public long downloadLength=0;
-        public boolean done;
-        public long oldTime;
-        parcel.writeInt(state);
-        parcel.writeLong(downTime);
-        parcel.writeLong(fileSize);
-        parcel.writeDouble(speed);
-        parcel.writeLong(downloadLength);
-        parcel.
-    }*/
+    public double getSpeed() {
+        return speed;
+    }
+
+    public int getState() {
+        return state;
+    }
+
+    public int getDownloadLength() {
+        return downloadLength;
+    }
+
+    public long getDownTime() {
+        return downTime;
+    }
+
+    public int getFileSize() {
+        return fileSize;
+    }
+
+    public long getOldTime() {
+        return oldTime;
+    }
+
+    public String getURLaddress() {
+        return URLaddress;
+    }
+
+
 }

@@ -5,9 +5,10 @@ package com.example.cyc.downloadproject.Interface;
  */
 
 public interface DownloadListener {
-    void onProgress(int progress,String ur);
+    void onProgress(Integer progress,String ur);
     void onSuccess(String url);
     void onFailed(String url);
     void onPaused(String url);
     void onCanceled(String url);
+    void onStart(long contentLength);
 }

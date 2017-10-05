@@ -30,19 +30,38 @@ import java.util.List;
 
 public class DownloadTaskAll  {
     String url;
-    DownloadListener listener;
+    private DownloadListener listener;
+    private Handler mHandler;
     private boolean isCancel;
     private boolean isPaused;
     private List<DownloadTask> taskList=new ArrayList<>();
-    public DownloadTaskAll(String url,DownloadListener listener){
+ /*   public DownloadTaskAll(String url,DownloadListener listener){
         this.url=url;
         this.listener=listener;
-    }
-    public void download(String url,DownloadListener listener){
+    }*/
+
+ public DownloadTaskAll(String url,Handler handler){
+     this.url=url;
+     mHandler=handler;
+ }
+
+  /*  public void download(String url,DownloadListener listener){
 
         for (int i=1;i<=AppConstant.THREAD_NUM;i++){
            // new DownLoadTask(listener,i).execute(url);
            DownloadTask task= new DownloadTask(url,i,listener);
+            taskList.add(task);
+            task.start();
+
+        }
+
+    }*/
+
+    public void download(String url){
+
+        for (int i=1;i<=AppConstant.THREAD_NUM;i++){
+            // new DownLoadTask(listener,i).execute(url);
+            DownloadTask task= new DownloadTask(url,i,mHandler);
             taskList.add(task);
             task.start();
 
@@ -61,10 +80,11 @@ public class DownloadTaskAll  {
     }
     public void cancelDownload(){
         isCancel=true;
+        listener.onCanceled(url);
         for (int i=0;i<AppConstant.THREAD_NUM;i++){
             taskList.get(i).cancelThread();
         }
-        listener.onCanceled(url);
+
        // listener.onCanceled(url);
     }
 }

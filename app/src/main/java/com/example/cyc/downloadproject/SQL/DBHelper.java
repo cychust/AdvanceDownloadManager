@@ -15,7 +15,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public DBHelper(Context context) {
         super(context, "download.db", null, 1);
     }
-    public static final String CREATE_BOOK="create table Book (" +
+    public static final String CREATE_BOOK="create table download (" +
             "id integer primary key autoincrement, " +
             "url text, " +
             "state integer, " +
@@ -23,7 +23,6 @@ public class DBHelper extends SQLiteOpenHelper {
             "filesize integer, " +
             "speed real, " +
             "downloadlength integer," +
-            "done integer, " +
             "oldtime integer)";
     @Override
     public void onCreate(SQLiteDatabase db) {

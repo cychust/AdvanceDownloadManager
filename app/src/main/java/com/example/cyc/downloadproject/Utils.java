@@ -4,6 +4,7 @@ import android.os.Environment;
 import android.widget.Toast;
 
 import com.example.cyc.downloadproject.Data.AppConstant;
+import com.example.cyc.downloadproject.Service.DownloadService;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -143,5 +144,20 @@ public class Utils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static Boolean isSuccess(String url,long allcontent){
+        String directory = Environment.getExternalStoragePublicDirectory
+                (Environment.DIRECTORY_DOWNLOADS).getPath();
+        //Toast.makeText(DownloadService.this, "download=file", Toast.LENGTH_SHORT).show();
+
+        String filename = url.substring(url.lastIndexOf("/") + 1);
+        for (int i=1;i<=AppConstant.THREAD_NUM;i++) {
+            File file;
+            file = new File(directory + "_" + i + filename);
+            if (file.length()!=allcontent/AppConstant.THREAD_NUM){
+                return false;
+            }
+        }
+        return true;
     }
 }
