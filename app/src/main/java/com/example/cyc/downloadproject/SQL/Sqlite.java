@@ -24,9 +24,9 @@ public class Sqlite {
         SQLiteDatabase database=dbHelper.getWritableDatabase();
         try {
 
-                String sql="insert into download(url,state,downtime,filesize,speed,downloadlength,oldtime) values (?,?,?,?,?)";
+                String sql="insert into download(url,state,downtime,filesize,downloadlength,oldtime) values (?,?,?,?,?,?)";
                 Object[] bindArgs = { urlDownload.getURLaddress(),urlDownload.getState(),urlDownload.getDownTime()
-                ,urlDownload.getFileSize(),urlDownload.getSpeed(),urlDownload.getDownloadLength()
+                ,urlDownload.getFileSize(),urlDownload.getDownloadLength()
                 ,urlDownload.getOldTime()};
                 database.execSQL(sql, bindArgs);
 
@@ -43,11 +43,11 @@ public class Sqlite {
         List<URLDownload>list=new ArrayList<>();
         Cursor cursor=null;
         try {
-            String sql="select url,state,downtime,filesize,speed,downloadlength,oldtime from Download";
+            String sql="select url,state,downtime,filesize,downloadlength,oldtime from download";
             cursor=database.rawQuery(sql,null);
             while (cursor.moveToNext()){
                 URLDownload urlDownload=new URLDownload(cursor.getString(0),cursor.getInt(1),
-                        cursor.getLong(2),cursor.getInt(3),cursor.getLong(4),cursor.getInt(5),cursor.getLong(6));
+                        cursor.getLong(2),cursor.getInt(3),cursor.getInt(4),cursor.getLong(5));
                 list.add(urlDownload);
             }
         }
@@ -70,7 +70,7 @@ public class Sqlite {
         long time=0;
         Cursor cursor=null;
         try {
-            String sql="select url,downtime from Download";
+            String sql="select url,downtime from download";
             cursor=database.rawQuery(sql,null);
             while (cursor.moveToNext()){
                 String url1=cursor.getString(0);
@@ -99,7 +99,7 @@ public class Sqlite {
         Cursor cursor = null;
         try {
             // 返回指定列不同值的数目
-            String sql = "select count(*)  from download_info where url=?";
+            String sql = "select count(*)  from download where url=?";
             cursor = database.rawQuery(sql, new String[] { url });
             if (cursor.moveToFirst()) {
                 count = cursor.getInt(0);
@@ -121,11 +121,11 @@ public class Sqlite {
         ArrayList<URLDownload>list=new ArrayList<>();
         Cursor cursor=null;
         try {
-            String sql="select url,state,downtime,filesize,speed,downloadlength,oldtime from Download";
+            String sql="select url,state,downtime,filesize,downloadlength,oldtime from download";
             cursor=database.rawQuery(sql,null);
             while (cursor.moveToNext()){
                 URLDownload urlDownload=new URLDownload(cursor.getString(0),cursor.getInt(1),
-                        cursor.getLong(2),cursor.getInt(3),cursor.getLong(4),cursor.getInt(5),cursor.getLong(6));
+                        cursor.getLong(2),cursor.getInt(3),cursor.getInt(4),cursor.getLong(5));
                 if (urlDownload.state==3) {
                     list.add(urlDownload);
                 }
@@ -150,11 +150,11 @@ public class Sqlite {
         ArrayList<URLDownload>list=new ArrayList<>();
         Cursor cursor=null;
         try {
-            String sql="select url,state,downtime,filesize,speed,downloadlength,oldtime from Download";
+            String sql="select url,state,downtime,filesize,downloadlength,oldtime from download";
             cursor=database.rawQuery(sql,null);
             while (cursor.moveToNext()){
                 URLDownload urlDownload=new URLDownload(cursor.getString(0),cursor.getInt(1),
-                        cursor.getLong(2),cursor.getInt(3),cursor.getLong(4),cursor.getInt(5),cursor.getLong(6));
+                        cursor.getLong(2),cursor.getInt(3),cursor.getInt(4),cursor.getLong(5));
                 if (urlDownload.state!=3) {
                     list.add(urlDownload);
                 }
@@ -173,17 +173,44 @@ public class Sqlite {
         }
         return list;
     }
+    public synchronized int getURLDoanloadLen(String url){
+        SQLiteDatabase database=dbHelper.getWritableDatabase();
+        int length=0;
+        Cursor cursor=null;
+        try {
+            String sql="select url,downloadlength from download";
+            cursor=database.rawQuery(sql,null);
+            while (cursor.moveToNext()){
+
+                if (cursor.getString(0).equals(url)){
+                    length= cursor.getInt(1);
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            if (null!=database){
+                database.close();
+            }
+            if (cursor!=null){
+                cursor.close();
+            }
+        }
+        return length;
+    }
 
     public  synchronized URLDownload query(String url) {
         SQLiteDatabase database = dbHelper.getWritableDatabase();
         Cursor cursor = null;
         URLDownload urlDownload=null;
         try {
-            String sql="select url,state,downtime,filesize,speed,downloadlength,oldtime from Download";
+            String sql="select url,state,downtime,filesize,downloadlength,oldtime from Download";
             cursor=database.rawQuery(sql,null);
             while (cursor.moveToNext()) {
                 urlDownload = new URLDownload(cursor.getString(0), cursor.getInt(1),
-                        cursor.getLong(2), cursor.getInt(3), cursor.getLong(4), cursor.getInt(5), cursor.getLong(6));
+                        cursor.getLong(2), cursor.getInt(3), cursor.getInt(4), cursor.getLong(5));
                 if (urlDownload.URLaddress.equals(url)){
                     break;
                 }

@@ -1,5 +1,7 @@
 package com.example.cyc.downloadproject;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -26,13 +28,13 @@ import okhttp3.Response;
 
 public class Utils {
 
- public static int APK=1;
- public static int TXT=2;
- public static int MP3=3;
- public static int MP4=4;
- public static int PIC=5;
- public static int ZIP=6;
- public static int OTHER=7;
+ public static final int APK=1;
+ public static final int TXT=2;
+ public static final int MP3=3;
+ public static final int MP4=4;
+ public static final int PIC=5;
+ public static final int ZIP=6;
+ public static final int OTHER=7;
 
     public static String getSpeed(double speed){
         double temp=speed/1024*1000;
@@ -60,16 +62,18 @@ public class Utils {
         if (suffix.equals("apk")){
             return APK;
         }
-        else if(suffix.equals("mp3")){
+        else if(suffix.equals("mp3")||suffix.equals("mid")||suffix.equals("xmf")||suffix.equals("ogg")||suffix.equals("wav")||
+                suffix.equals("m4a")){
             return MP3;
         }
-        else if (suffix.equals("mp4")){
+        else if (suffix.equals("mp4")||suffix.equals("3gp")){
             return MP4;
         }
         else if (suffix.equals("txt")){
             return TXT;
         }
-        else if (suffix.equals("jpg")||suffix.equals("png")){
+        else if (suffix.equals("jpg")||suffix.equals("png")||suffix.equals("gif")||suffix.equals("jpeg")
+                ||suffix.equals("bmp")){
             return PIC;
         }
         else if(suffix.equals("zip")){
@@ -159,5 +163,15 @@ public class Utils {
             }
         }
         return true;
+    }
+
+    public static Intent ApkFile(String param) {
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction(android.content.Intent.ACTION_VIEW);
+
+        Uri uri = Uri.fromFile(new File(param));
+        intent.setDataAndType(uri, "application/vnd.android.package-archive");
+        return intent;
     }
 }

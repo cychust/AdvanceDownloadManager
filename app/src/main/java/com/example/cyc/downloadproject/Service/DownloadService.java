@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
@@ -40,6 +41,13 @@ import java.util.Map;
  */
 
 public class DownloadService extends Service {
+
+    public static final String STARTDOWNLOAD = "startDownload";
+    public static final String CHANGESTATE = "changeState";
+
+    public static final String FINISHED="com.cyc.finished";
+    public static final String UPDATEPRGRESS="com.cyc.updateprogress";
+
     private DownloadTaskAll downloadTaskAll;
     private Sqlite sqlite;
     private Map<String,DownloadTaskAll>downloadTaskAllMap=new HashMap<>();
@@ -54,30 +62,36 @@ public class DownloadService extends Service {
               int completeSize =downloadLenMap.get(url);
               completeSize = completeSize + length;
               downloadLenMap.put(url, completeSize);
-              sqlite.updateURLDownloadComplete(url,completeSize);
-              /* if (completeSize%1024==0) {
+              //sqlite.updateURLDownloadComplete(url,completeSize);
+
                    Intent intent = new Intent();
                    intent.putExtra("progress", completeSize);
                    intent.putExtra("Url", url);
-                   intent.setAction("com.example.cyc.progress");
+                   intent.setAction(UPDATEPRGRESS);
                    sendBroadcast(intent);
-               }*/
+
               long fileSize=alldownloadLenMap.get(url);
               if (completeSize==fileSize){
                   Intent intent1 = new Intent();
-                  intent1.putExtra("progress",completeSize);
                   intent1.putExtra("Url", url);
-                  intent1.setAction("com.example.cyc.progress");
+                  intent1.setAction(FINISHED);
                   sendBroadcast(intent1);
                   sqlite.updataStateByUrl(url,3);
+
+                  String filename = url.substring(url.lastIndexOf("/") + 1);
+                  Toast.makeText(DownloadService.this,filename+"下载成功",Toast.LENGTH_SHORT).show();
                   downloadTaskAllMap.remove(url);
                   downloadLenMap.remove(url);
                   alldownloadLenMap.remove(url);
+                  getNotificationManager().notify(1,getNotification("正在下载任务："+downloadTaskAllMap.size(),
+                          0));
+                  if (downloadTaskAllMap.isEmpty()){
+                      stopSelf();
+                  }
                   String directory = Environment.getExternalStoragePublicDirectory
                           (Environment.DIRECTORY_DOWNLOADS).getPath();
                   Toast.makeText(DownloadService.this, "download=file", Toast.LENGTH_SHORT).show();
 
-                  String filename = url.substring(url.lastIndexOf("/") + 1);
                   try {
                       BufferedOutputStream outputStream = new BufferedOutputStream(
                               new FileOutputStream(directory + filename)
@@ -117,7 +131,6 @@ public class DownloadService extends Service {
       }
   };
 
-    private DownloadBinder mBinder =new DownloadBinder();
 
     @Override
     public void onCreate() {
@@ -125,49 +138,93 @@ public class DownloadService extends Service {
         sqlite=new Sqlite(this);
     }
 
+    @Override
+    public int onStartCommand(Intent intent,int flags, int startId) {
+        String url=intent.getStringExtra("Url");
+        String flag = intent.getStringExtra("flag");
+        int fileSize=intent.getIntExtra("FileSize",0);
+        if (flag.equals(STARTDOWNLOAD)){
+            startDownload(url,fileSize);
+        }
+        if (flag.equals(CHANGESTATE)){
+            changeState(url,fileSize);
+        }
 
+        return super.onStartCommand(intent, flags, startId);
+    }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return null;
     }
-    public class DownloadBinder extends Binder{
-        public void  startDownload(final String url,int fileSize){
-            downloadTaskAll=downloadTaskAllMap.get(url);
-            if(downloadTaskAll==null){
-              //  downloadUrl=url;
-                downloadTaskAll=new DownloadTaskAll(url,mHandler);
-                alldownloadLenMap.put(url,fileSize);
+
+        public void startDownload(final String url, int fileSize) {
+            downloadTaskAll = downloadTaskAllMap.get(url);
+            if (downloadTaskAll == null) {
+                //  downloadUrl=url;
+                downloadTaskAll = new DownloadTaskAll(url, mHandler, DownloadService.this);
+                alldownloadLenMap.put(url, fileSize);
                 downloadTaskAll.download(url);
-                downloadTaskAllMap.put(url,downloadTaskAll);
-                downloadLenMap.put(url,0);
-                long oldtime=System.currentTimeMillis();
-                URLDownload urlDownload=new URLDownload(url,1,0,fileSize,oldtime);
+                downloadTaskAllMap.put(url, downloadTaskAll);
+                int length = sqlite.getURLDoanloadLen(url);
+                downloadLenMap.put(url, length);
+                long oldtime = System.currentTimeMillis();
+                URLDownload urlDownload = new URLDownload(url, 1, 0, fileSize, oldtime);
                 if (sqlite.isHasDownloadInfos(url)) {
                     sqlite.saveDownloadInfos(urlDownload);
+                    Toast.makeText(DownloadService.this,"第一次下载",Toast.LENGTH_SHORT).show();
                 }
-                startForeground(1,getNotification("Task"+downloadTaskAllMap.size(),0));
-                Toast.makeText(DownloadService.this,"Downloading...",Toast.LENGTH_SHORT).show();
-            }
-        }
-        public void pauseDownload(String url){
-            DownloadTaskAll downloadTaskAll=downloadTaskAllMap.get(url);
+                startForeground(1, getNotification("Task" + downloadTaskAllMap.size(), 0));
+                Toast.makeText(DownloadService.this, "Downloading...", Toast.LENGTH_SHORT).show();
+            } else {
 
-            if(downloadTaskAll!=null){
-                downloadTaskAll.pausedDownload();
+
+                downloadTaskAll.download(url);
+                Toast.makeText(DownloadService.this,"chongxindownload",Toast.LENGTH_SHORT).show();
+                int length = sqlite.getURLDoanloadLen(url);
+                downloadLenMap.put(url, length);
+                long oldtime = System.currentTimeMillis();
+                URLDownload urlDownload = new URLDownload(url, 1, length, fileSize, oldtime);
+                sqlite.updataStateByUrl(url, 1);
+                startForeground(1, getNotification("Task" + downloadTaskAllMap.size(), 0));
             }
-            sqlite.updataStateByUrl(url,2);
-            long currentTime= System.currentTimeMillis();
-            long downloadTime=currentTime-sqlite.getURLDoanloadTime(url);
-            sqlite.updateURLDownloadTime(url,downloadTime);
-            downloadTaskAllMap.remove(downloadTaskAll);
         }
-        public void cancelDownload(){
-            if(downloadTaskAll!=null){
-                downloadTaskAll.cancelDownload();
+
+        public void changeState(String url, int fileSize) {
+            DownloadTaskAll downloadTaskall = downloadTaskAllMap.get(url);
+            int downloadLen=downloadLenMap.get(url);
+            if (downloadTaskall != null) {
+                if (downloadTaskall.isDownloading()) {
+                    downloadTaskall.setPaused();
+                    sqlite.updateURLDownloadComplete(url,downloadLen);
+                    sqlite.updataStateByUrl(url,2);
+                } else if (downloadTaskall.isPaused()) {
+                    downloadTaskall.reset();
+                    startDownload(url, fileSize);
+                    sqlite.updataStateByUrl(url,1);
+                }
+            } else {
+                startDownload(url, fileSize);
             }
-            else {
+        }
+  /*  public void pauseDownload (String url){
+    DownloadTaskAll downloadTaskAll = downloadTaskAllMap.get(url);
+
+    if (downloadTaskAll != null) {
+        downloadTaskAll.pausedDownload();
+    }
+    sqlite.updataStateByUrl(url, 2);
+    long currentTime = System.currentTimeMillis();
+    long downloadTime = currentTime - sqlite.getURLDoanloadTime(url);
+    sqlite.updateURLDownloadTime(url, downloadTime);
+    downloadTaskAllMap.remove(downloadTaskAll);
+}*/
+
+   /* public void cancelDownload() {
+        if (downloadTaskAll != null) {
+            downloadTaskAll.cancelDownload();
+        } else {
             /*    if(!=null){
                     String filename=downloadUrl.substring(downloadUrl.lastIndexOf("/"));
                     String directory= Environment.getExternalStoragePublicDirectory(Environment
@@ -180,9 +237,7 @@ public class DownloadService extends Service {
                     stopForeground(true);
                     Toast.makeText(DownloadService.this,"Download cancel",Toast.LENGTH_SHORT).show();
                 }*/
-            }
-        }
-    }
+
     private Notification getNotification(String title,int progress){
         Intent intent=new Intent(this, MainActivity.class);
         PendingIntent pi=PendingIntent.getActivity(this,0,intent,0);
@@ -192,11 +247,6 @@ public class DownloadService extends Service {
                 R.mipmap.ic_launcher));
         builder.setContentTitle(title);
         builder.setContentIntent(pi);
-        if(progress>0){
-            builder.setContentText(progress+"%");
-            builder.setProgress(100,progress,false);
-
-        }
         return builder.build();
     }
     private NotificationManager getNotificationManager(){

@@ -16,7 +16,6 @@ public class URLDownload implements Serializable{
     public int state=1;
     public long downTime=0;
     public int fileSize=0;
-    public double speed=0.0;
     public int downloadLength=0;
     public long oldTime;
     public URLDownload(String URLaddress,int state,int downloadLength,int fileSize,long oldTime){
@@ -30,13 +29,12 @@ public class URLDownload implements Serializable{
 
     }
 
-    public URLDownload(String URLaddress,int state,long downTime,int fileSize,double speed,int downloadLength,long oldTime){
+    public URLDownload(String URLaddress,int state,long downTime,int fileSize,int downloadLength,long oldTime){
         this.URLaddress=URLaddress;
         this.fileSize=fileSize;
         this.oldTime=oldTime;
         this.state=state;
         this.downTime=downTime;
-        this.speed=speed;
         this.downloadLength=downloadLength;
     }
     public void setDownTime(long downTime) {
@@ -47,6 +45,10 @@ public class URLDownload implements Serializable{
         this.oldTime = oldTime;
     }
 
+    public String getFileName(){
+        String filename = URLaddress.substring(URLaddress.lastIndexOf("/") + 1);
+        return filename;
+    }
     public void setFileSize(int fileSize){
         this.fileSize=fileSize;
     }
@@ -56,9 +58,6 @@ public class URLDownload implements Serializable{
 
 
 
-    public void setSpeed(double speed) {
-        this.speed = speed;
-    }
 
     public void setState(int state) {
         this.state = state;
@@ -68,9 +67,6 @@ public class URLDownload implements Serializable{
         this.downloadLength = downloadLength;
     }
 
-    public double getSpeed() {
-        return speed;
-    }
 
     public int getState() {
         return state;
