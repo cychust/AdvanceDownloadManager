@@ -97,14 +97,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         intent=getIntent();
-        if (intent!=null) {
+
             if (intent.getAction().equals(Intent.ACTION_VIEW)) {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
                 AlertDialog alertDialog = builder.create();
                 url = intent.getDataString();
                 dialogShow(alertDialog, url);
             }
-        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         toolbar = (Toolbar) findViewById(R.id.toolbar);

@@ -85,30 +85,29 @@ public class DownloadService extends Service {
                   intent1.putExtra("Url", url);
                   intent1.setAction(FINISHED);
                   DownloadService.this.sendBroadcast(intent1);
-                  sqlite.updataStateByUrl(url,3);
-
-                  getNotificationManager().notify(i,getNotification("正在下载任务："+downloadTaskAllMap.size(),
-                          0));
                   String filename = url.substring(url.lastIndexOf("/") + 1);
+                  sqlite.updataStateByUrl(url,3);
+                  getNotificationManager().notify(id,getNotification(filename+"下载成功",100));
+                  getNotificationManager().notify(1,getNotification("正在下载任务："+downloadTaskAllMap.size(),
+                          0));
+
                   Toast.makeText(DownloadService.this,filename+"下载成功",Toast.LENGTH_SHORT).show();
                   downloadTaskAllMap.remove(url);
                   downloadLenMap.remove(url);
                   alldownloadLenMap.remove(url);
                   downloadIdMap.remove(url);
-                  getNotificationManager().notify(1,getNotification("正在下载任务："+downloadTaskAllMap.size(),
-                          0));
                   if (downloadTaskAllMap.isEmpty()){
                       stopSelf();
                   }
                   String directory = Environment.getExternalStoragePublicDirectory
                           (Environment.DIRECTORY_DOWNLOADS).getPath();
-                  Toast.makeText(DownloadService.this, "download=file", Toast.LENGTH_SHORT).show();
+               //   Toast.makeText(DownloadService.this, "download=file", Toast.LENGTH_SHORT).show();
 
                   try {
                       BufferedOutputStream outputStream = new BufferedOutputStream(
                               new FileOutputStream(directory + filename)
                       );
-                      Toast.makeText(DownloadService.this, "wenjian整合", Toast.LENGTH_SHORT).show();
+                      Toast.makeText(DownloadService.this, "文件整合", Toast.LENGTH_SHORT).show();
                       for (int k = 1; k <= AppConstant.THREAD_NUM; k++) {
                           File file = new File(directory +  "_" + k+filename );
                           BufferedInputStream inputStream = new BufferedInputStream(
@@ -195,12 +194,12 @@ public class DownloadService extends Service {
                 }
                 startForeground(1, getNotification("Task" + downloadTaskAllMap.size(), 0));
                 startForeground(i,getNotification(urlDownload.getFileName(),0));
-                Toast.makeText(DownloadService.this, "Downloading...", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(DownloadService.this, "Downloading...", Toast.LENGTH_SHORT).show();
             } else {
 
 
                 downloadTaskAll.download(url);
-                Toast.makeText(DownloadService.this,"chongxindownload",Toast.LENGTH_SHORT).show();
+                Toast.makeText(DownloadService.this,"继续下载",Toast.LENGTH_SHORT).show();
                // int length = sqlite.getURLDoanloadLen(url);
                // downloadLenMap.put(url, length);
               //  long oldtime = System.currentTimeMillis();
@@ -245,6 +244,7 @@ public class DownloadService extends Service {
 
     private Notification getNotification(String title,int progress){
         Intent intent=new Intent(this, MainActivity.class);
+        intent.setAction("qiantaifuwu");
         PendingIntent pi=PendingIntent.getActivity(this,0,intent,0);
         NotificationCompat.Builder builder=new NotificationCompat.Builder(this);
         builder.setSmallIcon(R.mipmap.ic_launcher);

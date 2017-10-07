@@ -12,6 +12,7 @@
             android:layout_height="20dp"
             android:src="@drawable/stat_start"/>
         <TextView
+            android:textColor="@android:color/white"
             android:id="@+id/file_name"
             android:singleLine="true"
             android:layout_width="0dp"
@@ -29,6 +30,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
     <TextView
+        android:textColor="@android:color/white"
         android:id="@+id/downloadLength"
         android:gravity="left"
         android:text="0kb/s"
@@ -36,6 +38,7 @@
         android:layout_weight="1"
         android:layout_height="wrap_content" />
         <TextView
+            android:textColor="@android:color/white"
             android:id="@+id/fileSize"
             android:gravity="right"
             android:layout_width="0dp"
