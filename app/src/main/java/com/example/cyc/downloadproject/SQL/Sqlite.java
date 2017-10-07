@@ -4,9 +4,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.example.cyc.downloadproject.URL.URLDownload;
+import com.example.cyc.downloadproject.Data.URLDownload;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,6 +115,35 @@ public class Sqlite {
         }
         return count == 0;
     }
+    public synchronized boolean isDownloadAll(){
+        SQLiteDatabase database=dbHelper.getWritableDatabase();
+        int count =0;
+        Cursor cursor = null;
+        try {
+            // 返回指定列不同值的数目
+            String sql = "select state from download";
+            cursor = database.rawQuery(sql, null);
+            while (cursor.moveToNext()) {
+                if (cursor.getInt(0) != 3) {
+                    count = 1;
+                    break;
+                }
+            }
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        finally {
+            if (null!=database){
+                database.close();
+            }
+            if (cursor!=null){
+                cursor.close();
+            }
+        }
+        return count == 0;
+    }
+
     public synchronized ArrayList<URLDownload> getURLDoanloaded(){
         SQLiteDatabase database=dbHelper.getWritableDatabase();
         ArrayList<URLDownload>list=new ArrayList<>();

@@ -2,11 +2,10 @@ package com.example.cyc.downloadproject.Adapter;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteStatement;
 import android.net.Uri;
 import android.os.Environment;
-import android.support.v4.content.FileProvider;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,11 +16,12 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.example.cyc.downloadproject.Fragment.RecyclerItemTouchHelperLeft;
 import com.example.cyc.downloadproject.R;
 
-import com.example.cyc.downloadproject.Service.DownloadService;
-import com.example.cyc.downloadproject.URL.URLDownload;
-import com.example.cyc.downloadproject.Utils;
+import com.example.cyc.downloadproject.Data.URLDownload;
+import com.example.cyc.downloadproject.Data.Utils;
+import com.example.cyc.downloadproject.SQL.Sqlite;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,10 +31,12 @@ import java.util.ArrayList;
  * Created by cyc on 17-10-1.
  */
 
-public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>{
+public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>
+    implements RecyclerItemTouchHelperLeft.ItemTouchHelperCallback{
 
     public ArrayList<URLDownload>tasklist=null;
     private Context context;
+    private Sqlite sqlite;
     static class ViewHolder extends RecyclerView.ViewHolder{
         ImageView downloadorpause;
         TextView filename;
@@ -75,6 +77,7 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>{
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
+        sqlite=new Sqlite(context);
         URLDownload task=tasklist.get(position);
         String filename=task.URLaddress.substring(task.URLaddress.lastIndexOf("/")+1);
         if(Utils.getCategory(filename)==Utils.APK){
@@ -105,17 +108,6 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>{
                             (Environment.DIRECTORY_DOWNLOADS).getPath();
                     String filename = task.URLaddress.substring(task.URLaddress.lastIndexOf("/") + 1);
                     String name=directory+filename;
-               /* File file=new File(name);
-                Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
-                Uri uri = FileProvider.getUriForFile(view.getContext(),"com.example.cyc.downloadproject",file);
-                intent.setDataAndType(uri, "application/vnd.android.package-archive");
-                if (view.getContext()!=null) {
-                    Log.d("context","sucess");
-                    view.getContext().startActivity(intent);
-                }*/
-                   // view.getContext().startService(Utils.ApkFile(name));
                 Intent intent = new Intent();
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setAction(android.content.Intent.ACTION_VIEW);
@@ -141,7 +133,16 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>{
 
 
     }
-    public void updateViewSome(int position,ArrayList<URLDownload>lists){
+
+    @Override
+    public void onItemDalete(int position) {
+        URLDownload urlDownload=tasklist.get(position);
+        sqlite.deleteURLDownload(urlDownload.URLaddress);
+        tasklist.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    public void updateViewSome(int position, ArrayList<URLDownload>lists){
         if (lists.size()<tasklist.size()){
             notifyItemRemoved(position);
             this.tasklist=lists;

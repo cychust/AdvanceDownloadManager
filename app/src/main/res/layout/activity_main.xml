@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#fff"
+    android:background="#262626"
     tools:context=".MainActivity">
 
     <android.support.v4.widget.DrawerLayout
@@ -32,7 +32,7 @@
                     android:id="@+id/tabs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:tabIndicatorColor="#ADBE107E"
+                    app:tabIndicatorColor="#ffffff"
                     android:layout_marginTop="0dp"
                     />
 
@@ -52,7 +52,7 @@
     android:layout_height="wrap_content"
     android:layout_gravity="bottom|end"
     android:layout_margin="16dp"
-    android:background="@color/colorPrimary"
+    android:background="#363636"
          android:src="@drawable/menu_add"/>
      </android.support.design.widget.CoordinatorLayout>
 
@@ -62,7 +62,7 @@
             android:layout_width="@dimen/navigation_drawer_width"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            android:name="com.example.cyc.downloadproject.NavigationDrawerFragment"
+            android:name="com.example.cyc.downloadproject.Fragment.NavigationDrawerFragment"
             tools:layout="@layout/fragment_navigation_drawer" />-->
 
 
@@ -71,15 +71,18 @@
             android:layout_width="@dimen/navigation_drawer_width"
             android:layout_height="match_parent"
             android:layout_gravity="start"
-            android:name="com.example.cyc.downloadproject.NavigationDrawerFragment"
+            android:name="com.example.cyc.downloadproject.Fragment.NavigationDrawerFragment"
             tools:layout="@layout/fragment_navigation_drawer" />
 
         <android.support.design.widget.NavigationView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="start"/>-->
-
-
+        <android.support.design.widget.NavigationView
+            android:id="@+id/nav_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"/>
     </android.support.v4.widget.DrawerLayout>
 
 

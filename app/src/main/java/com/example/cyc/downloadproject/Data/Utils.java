@@ -1,4 +1,4 @@
-package com.example.cyc.downloadproject;
+package com.example.cyc.downloadproject.Data;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -100,16 +100,22 @@ public class Utils {
         }
         listener.onFailed();*/
         OkHttpClient client=new OkHttpClient();
-        Request request=new Request.Builder().url(downloadUrl).build();
-        Response response=client.newCall(request).execute();
-        if (response!=null){
-            long contentlength=response.body().contentLength();
-            response.body().close();
+         if (downloadUrl!=null){
+             Request request=new Request.Builder().url(downloadUrl).build();
+             Response response=client.newCall(request).execute();
+             if (response!=null&&response.isSuccessful()){
+                 long contentlength=response.body().contentLength();
+                 response.body().close();
 
-            return contentlength;
-        }
+                 return contentlength;
+             }
+         }
 
         return 0;
+    }
+    public synchronized static String getFileName(String url){
+        String filename=url.substring(url.lastIndexOf("/") + 1);
+        return filename;
     }
     public void fixFile(String url){
         String directory = Environment.getExternalStoragePublicDirectory

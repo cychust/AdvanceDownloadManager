@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.com.superiordownloader.MainActivity">
+    <item
+        android:id="@+id/thread_chooser"
+        android:icon="@drawable/menu_add"
+        android:title="edit"
+        app:showAsAction="always"/>
+
+    <item
+        android:id="@+id/settings"
+        android:title="待添加"
+        app:showAsAction="never"/>
+    <item
+        android:id="@+id/delete"
+        android:title="待添加"
+        app:showAsAction="never"/>
+
+</menu>

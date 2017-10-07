@@ -6,16 +6,16 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.example.cyc.downloadproject.Adapter.DoneAdapter;
-import com.example.cyc.downloadproject.Adapter.TaskAdapter;
-import com.example.cyc.downloadproject.Interface.DownloadListener;
 import com.example.cyc.downloadproject.R;
 import com.example.cyc.downloadproject.SQL.Sqlite;
-import com.example.cyc.downloadproject.URL.URLDownload;
+import com.example.cyc.downloadproject.Data.URLDownload;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +63,11 @@ public class DoneFragment extends Fragment  {
         initDate();
         adapter=new DoneAdapter(lists,getActivity());
         RecyclerView recyclerView=(RecyclerView)view.findViewById(R.id.recycler_view);
-
+        ((SimpleItemAnimator)recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
         recyclerView.setAdapter(adapter);
+        ItemTouchHelper.Callback callback=new RecyclerItemTouchHelperLeft(adapter);
+        ItemTouchHelper itemTouchHelper=new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(linearLayoutManager);
 

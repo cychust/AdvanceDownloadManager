@@ -42,33 +42,18 @@ public class DownloadTaskAll  {
     private Handler mHandler;
     private boolean isDownloading=false;
     private boolean isCancel=false;
-    private boolean isPaused=false;
     private List<DownloadTask> taskList=new ArrayList<>();
     private Context context;
     private Sqlite sqlite;
- /*   public DownloadTaskAll(String url,DownloadListener listener){
-        this.url=url;
-        this.listener=listener;
-    }*/
-
  public DownloadTaskAll(String url, Handler handler, Context context){
      this.url=url;
      mHandler=handler;
      this.context=context;
      sqlite=new Sqlite(context);
+
  }
 
-  /*  public void download(String url,DownloadListener listener){
 
-        for (int i=1;i<=AppConstant.THREAD_NUM;i++){
-           // new DownLoadTask(listener,i).execute(url);
-           DownloadTask task= new DownloadTask(url,i,listener);
-            taskList.add(task);
-            task.start();
-
-        }
-
-    }*/
 
     public void download(String url){
 
@@ -80,43 +65,20 @@ public class DownloadTaskAll  {
             }
             isDownloading=true;
 
-
-
     }
-  /*  public void pausedDownload(){
-        isPaused=true;
-        for (int i=0;i<AppConstant.THREAD_NUM;i++){
-            DownloadTask task=taskList.get(i);
-            task.pausedThread();
 
-        }
-        listener.onPaused(url);
-        //listener.onPaused(url);
-    }
-    public void cancelDownload(){
-        isCancel=true;
-        listener.onCanceled(url);
-        for (int i=0;i<AppConstant.THREAD_NUM;i++){
-            taskList.get(i).cancelThread();
-        }
 
-       // listener.onCanceled(url);
-    }*/
-
-    public boolean isPaused() {
-        return isPaused;
-    }
 
     public boolean isDownloading() {
         return isDownloading;
     }
 
     public void setPaused() {
-        isPaused = true;
+        isDownloading = false;
     }
 
     public void setCancel(String url){
-     sqlite.deleteURLDownload(url);
+        isCancel=true;
     }
 
 
@@ -197,7 +159,7 @@ public class DownloadTaskAll  {
                         if (isCancel) {
                             break;
                         }
-                        else if (isPaused) {
+                        else if (!isDownloading) {
                             break;
                         }
                         else {

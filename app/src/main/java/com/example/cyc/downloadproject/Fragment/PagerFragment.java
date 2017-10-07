@@ -1,4 +1,4 @@
-package com.example.cyc.downloadproject;
+package com.example.cyc.downloadproject.Fragment;
 
 
 import android.app.Activity;
@@ -9,21 +9,18 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.cyc.downloadproject.Adapter.TaskAdapter;
-import com.example.cyc.downloadproject.Interface.DownloadListener;
-import com.example.cyc.downloadproject.SQL.DBHelper;
+import com.example.cyc.downloadproject.R;
 import com.example.cyc.downloadproject.SQL.Sqlite;
-import com.example.cyc.downloadproject.URL.URLDownload;
+import com.example.cyc.downloadproject.Data.URLDownload;
 
 import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -89,6 +86,10 @@ public class PagerFragment extends Fragment {
         adapter=new TaskAdapter(lists,getActivity());
         RecyclerView recyclerView=(RecyclerView)view.findViewById(R.id.recycler_view);
         recyclerView.setAdapter(adapter);
+        ItemTouchHelper.Callback callback=new RecyclerItemTouchHelperRight(adapter);
+        ItemTouchHelper itemTouchHelper=new ItemTouchHelper(callback);
+        itemTouchHelper.attachToRecyclerView(recyclerView);
+        ((SimpleItemAnimator)recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
         LinearLayoutManager linearLayoutManager=new LinearLayoutManager(inflater.getContext(),LinearLayoutManager.VERTICAL,false);
         recyclerView.setLayoutManager(linearLayoutManager);
 

@@ -13,7 +13,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     private Context context;
     public DBHelper(Context context) {
-        super(context, "downloadtask2.db", null, 1);
+        super(context, "downloadTask3.db", null, 1);
     }
     public static final String CREATE_BOOK="create table download (" +
             "id integer primary key autoincrement, " +

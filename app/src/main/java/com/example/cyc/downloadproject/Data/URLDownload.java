@@ -1,4 +1,4 @@
-package com.example.cyc.downloadproject.URL;
+package com.example.cyc.downloadproject.Data;
 
 import android.content.Context;
 import android.os.Parcel;

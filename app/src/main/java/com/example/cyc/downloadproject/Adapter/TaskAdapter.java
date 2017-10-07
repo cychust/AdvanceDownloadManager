@@ -9,32 +9,34 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.cyc.downloadproject.Fragment.RecyclerItemTouchHelperRight;
+import com.example.cyc.downloadproject.Fragment.RecyclerItemTouchHelperRight;
 import com.example.cyc.downloadproject.R;
 
+import com.example.cyc.downloadproject.SQL.Sqlite;
 import com.example.cyc.downloadproject.Service.DownloadService;
-import com.example.cyc.downloadproject.URL.URLDownload;
-import com.example.cyc.downloadproject.Utils;
+import com.example.cyc.downloadproject.Data.URLDownload;
+import com.example.cyc.downloadproject.Data.Utils;
 
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Created by cyc on 17-10-1.
  */
 
-public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>{
+public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>
+        implements RecyclerItemTouchHelperRight.ItemTouchHelperCallback{
 
     public ArrayList<URLDownload>tasklist=null;
     private Context context;
+    Sqlite sqlite;
+
     private OnItemClickListener onItemClickListener=null;
     public static interface OnItemClickListener {
         void onItemClick(View view,int position);
@@ -75,54 +77,13 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>{
         return  viewHolder;
     }
 
-   /* @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-       /* URLDownload task=tasklist.get(position);
-        String filename=task.URLaddress.substring(task.URLaddress.lastIndexOf("/")+1);
-        if(Utils.getCategory(filename)==Utils.APK){
-            holder.fileCategory.setImageResource(R.drawable.ext_program);
-        }else if (Utils.getCategory(filename)==Utils.TXT){
-            holder.fileCategory.setImageResource(R.drawable.ext_text);
-        }else if (Utils.getCategory(filename)==Utils.OTHER){
-            holder.fileCategory.setImageResource(R.drawable.ext_other);
-        }else if (Utils.getCategory(filename)==Utils.PIC){
-            holder.fileCategory.setImageResource(R.drawable.ext_image);
-        }else if (Utils.getCategory(filename)==Utils.ZIP){
-            holder.fileCategory.setImageResource(R.drawable.ext_archive);
-        }else if (Utils.getCategory(filename)==Utils.MP3){
-            holder.fileCategory.setImageResource(R.drawable.ext_music);
-        }else if (Utils.getCategory(filename)==Utils.MP4){
-            holder.fileCategory.setImageResource(R.drawable.ext_video);
-        }
-        holder.filename.setText(filename);
-        switch (task.state){
-            case 1:
-                holder.downloadorpause.setImageResource(R.drawable.stat_stop);
-                break;
-            case 2:
-                holder.downloadorpause.setImageResource(R.drawable.stat_start);
-                break;
-            case 3:
-                holder.downloadorpause.setImageResource(R.drawable.stat_full);
-            default:break;
-
-        }
-        holder.downloadorpause.setOnClickListener(this);
-        holder.downloadorpause.setTag(position);
-        int progress=(int)(task.downloadLength*100.0/(task.fileSize*2));
-        holder.progressBar.setProgress(progress);
-        holder.speedTv.setText(Utils.getSpeed(task.speed));
-        holder.fileSizeTv.setText(Utils.getFileSize(task.fileSize));
-        holder.downloadLength.setText(Utils.getFileSize(task.downloadLength/2));
-*/
- //   }
 
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
 
         URLDownload task=tasklist.get(position);
             String filename=task.URLaddress.substring(task.URLaddress.lastIndexOf("/")+1);
-
+        sqlite=new Sqlite(context);
         switch (Utils.getCategory(filename)){
             case Utils.APK:
                 holder.fileCategory.setImageResource(R.drawable.ext_program);
@@ -148,6 +109,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>{
 
             default:break;
         }
+
 
             holder.filename.setText(filename);
             switch (task.state){
@@ -204,6 +166,21 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>{
     }
 
     @Override
+    public void onItemDalete(int position) {
+        URLDownload urlDownload=tasklist.get(position);
+        Intent intent = new Intent();
+        intent.setClass(context,DownloadService.class);
+        intent.putExtra("Url", urlDownload.getURLaddress());
+        intent.putExtra("flag", DownloadService.DALETEDOWNLOAD);
+        intent.putExtra("FileSize",urlDownload.fileSize);
+        context.startService(intent);
+
+        sqlite.deleteURLDownload(urlDownload.URLaddress);
+        tasklist.remove(position);
+        notifyItemRemoved(position);
+    }
+
+    @Override
     public int getItemCount() {
         return tasklist.size();
     }
@@ -217,7 +194,6 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.ViewHolder>{
         }
     }
     public void updateViewArray(ArrayList<URLDownload> lists){
-
         this.tasklist=lists;
         notifyDataSetChanged();
 
@@ -248,7 +224,6 @@ if (urlDownload.URLaddress.equals(url))
             if (urlDownload.URLaddress.equals(url)){
                 notifyItemRemoved(i);
                 tasklist.remove(urlDownload);
-                notifyDataSetChanged();
             }
         }
     }

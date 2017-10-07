@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:background="#ffffff">
+    <TextView
+        android:id="@+id/argument_seek"
+        android:text="线程数：1"
+        android:background="@android:color/white"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="start"/>
+<SeekBar
+    android:id="@+id/chooser_seek"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:maxHeight="2dp"
+    android:minHeight="1dp"
+    android:progressDrawable="@drawable/seekbar"
+    android:thumb="@drawable/thumb_bg"/>
+</LinearLayout>

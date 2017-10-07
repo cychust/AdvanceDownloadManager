@@ -1,4 +1,4 @@
-package com.example.cyc.downloadproject;
+package com.example.cyc.downloadproject.Fragment;
 
 
 import android.app.Activity;
@@ -18,6 +18,7 @@ import android.widget.ExpandableListView;
 
 
 import com.example.cyc.downloadproject.Adapter.ExpandableListAdapter;
+import com.example.cyc.downloadproject.R;
 
 import java.util.ArrayList;
 import java.util.HashMap;
