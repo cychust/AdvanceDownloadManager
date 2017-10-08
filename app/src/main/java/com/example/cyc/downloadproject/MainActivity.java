@@ -51,6 +51,7 @@ import com.example.cyc.downloadproject.Adapter.MyFragmentAdapter;
 
 import com.example.cyc.downloadproject.Data.AppConstant;
 import com.example.cyc.downloadproject.Data.Utils;
+import com.example.cyc.downloadproject.Data.WebAdress;
 import com.example.cyc.downloadproject.Fragment.DoneFragment;
 
 import com.example.cyc.downloadproject.Fragment.PagerFragment;
@@ -255,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else {
                     Snackbar.make(floatingActionButton,"请等待全部下载完毕再设置",Snackbar.LENGTH_SHORT)
                             .setAction("确定",null).show();
-                    Toast.makeText(MainActivity.this,"请等待全部下载完毕再设置",Toast.LENGTH_SHORT).show();
+               //     Toast.makeText(MainActivity.this,"请等待全部下载完毕再设置",Toast.LENGTH_SHORT).show();
                 }
                 break;
             case R.id.delete:
@@ -329,7 +330,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (view.getId()) {
             case R.id.fab:
                 final AlertDialog.Builder builder = new AlertDialog.Builder(this);
-
                 final AlertDialog alertDialog = builder.create();
                 dialogShow(alertDialog,null);
                 break;
@@ -369,8 +369,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void start(URLDownload newTask){
         listDownloading.add(newTask);
-        downloadingFragment.adapter.tasklist.add(newTask);
-        downloadingFragment.adapter.notifyItemInserted(downloadingFragment.adapter.tasklist.size()-1);
+
+
+            downloadingFragment.adapter.tasklist.add(newTask);
+            downloadingFragment.adapter.notifyItemInserted(downloadingFragment.adapter.tasklist.size()-1);
+
+
         Intent intent=new Intent(MainActivity.this,DownloadService.class);
         intent.putExtra("Url",newTask.URLaddress);
         intent.putExtra("flag",DownloadService.STARTDOWNLOAD);
@@ -468,7 +472,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
-    public void dialogShow(final AlertDialog alertDialog,String url) {
+    public void dialogShow(final AlertDialog alertDialog, final String url) {
     alertDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
     alertDialog.show();
     View view1 = getLayoutInflater().inflate(R.layout.dialog, null);
@@ -477,7 +481,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     WindowManager.LayoutParams lm = window.getAttributes();
     lm.gravity = Gravity.CENTER;
     int width = getWindowManager().getDefaultDisplay().getWidth();
-    lm.width = width;
+    lm.width = width*9/10;
     lm.height = WindowManager.LayoutParams.WRAP_CONTENT;
     window.setAttributes(lm);
 
@@ -551,43 +555,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     downloadStartBtn.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-            final Handler handler = new Handler() {
-                @Override
-                public void handleMessage(Message msg) {
-                    if (msg.what == STARTDOWNLOAD) {
-                        int filesize = (int) msg.getData().getLong("contentLength");
-                        Toast.makeText(MainActivity.this, "all:" + filesize, Toast.LENGTH_SHORT).show();
-                        Log.d("all", filesize + "en");
-                        long oldTime = System.currentTimeMillis();
-                        start(new URLDownload(URLAddress, 1, 0, filesize, oldTime));
-                        fileSize.setText("(" + Utils.getFileSize(filesize) + ")");
-                    }
-                }
-            };
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-
-                    try {
-                        synchronized (this) {
-                            long contentL = Utils.getContentLength(URLAddress);
-                            Message message = new Message();
-                            Bundle bundle = new Bundle();
-                            bundle.putLong("contentLength", contentL);
-                            message.what = STARTDOWNLOAD;
-                            message.setData(bundle);
-                            handler.sendMessage(message);
+                final Handler handler = new Handler() {
+                    @Override
+                    public void handleMessage(Message msg) {
+                        if (msg.what == STARTDOWNLOAD) {
+                            int filesize = (int) msg.getData().getLong("contentLength");
+                            Toast.makeText(MainActivity.this, "all:" + filesize, Toast.LENGTH_SHORT).show();
+                            Log.d("all", filesize + "en");
+                            long oldTime = System.currentTimeMillis();
+                            start(new URLDownload(URLAddress, 1, 0, filesize, oldTime));
+                            fileSize.setText("(" + Utils.getFileSize(filesize) + ")");
                         }
-
-
-                    } catch (IOException e) {
-                        e.printStackTrace();
                     }
-                }
-            }).start();
+                };
 
-            alertDialog.dismiss();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        try {
+                            synchronized (this) {
+                                long contentL = Utils.getContentLength(URLAddress);
+                                Message message = new Message();
+                                Bundle bundle = new Bundle();
+                                bundle.putLong("contentLength", contentL);
+                                message.what = STARTDOWNLOAD;
+                                message.setData(bundle);
+                                handler.sendMessage(message);
+                            }
+
+
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+
+                alertDialog.dismiss();
 
 
         }

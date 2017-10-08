@@ -1,6 +1,7 @@
 package com.example.cyc.downloadproject.ThreadTask;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
@@ -8,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.cyc.downloadproject.Application.MyApplication;
 import com.example.cyc.downloadproject.Data.AppConstant;
 import com.example.cyc.downloadproject.Interface.DownloadListener;
 import com.example.cyc.downloadproject.MainActivity;
@@ -129,27 +131,17 @@ public class DownloadTaskAll  {
                     endIndex = allcontentLength-1;
                 }
                 long start=startIndex+downloadedLength;
-       /*     if (contentLength == 0) {
-
-            } else if (contentLength == downloadedLength) {
-
-            }*/
-
-      /*      URL url = new URL(downloadUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(8000);
-            connection.setRequestProperty("Range", "bytes=" + startIndex + "-" + endIndex);
-            connection.setReadTimeout(8000);
-            is = connection.getInputStream();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(is));*/
                 OkHttpClient client = new OkHttpClient();
                 Request request = new Request.Builder()
                         .addHeader("RANGE", "bytes=" + start + "-"+endIndex)
                         .url(downloadUrl)
                         .build();
+
                 Response response = client.newCall(request).execute();
-                if (response != null) {
+                if (!response.isSuccessful()){
+                    file.delete();
+                }
+                else if (response != null&&response.isSuccessful()) {
                     is = response.body().byteStream();
                     saveFile = new RandomAccessFile(file, "rw");
                     saveFile.seek(downloadedLength);
@@ -198,17 +190,6 @@ public class DownloadTaskAll  {
             }
         }
         private long getContentLength(String downloadUrl) throws IOException  {
-       /* URL url=new URL(downloadUrl);
-        HttpURLConnection connection=(HttpURLConnection)url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(5000);
-        int reponseCode=connection.getResponseCode();
-        if (reponseCode==200){
-            long contentLength=connection.getContentLength();
-            listener.getMax();
-            return contentLength;
-        }
-        listener.onFailed();*/
             OkHttpClient client=new OkHttpClient();
             Request request=new Request.Builder().url(downloadUrl).build();
             Response response=client.newCall(request).execute();

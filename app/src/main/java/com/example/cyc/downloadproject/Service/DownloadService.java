@@ -173,7 +173,7 @@ public class DownloadService extends Service {
         return null;
     }
 
-        public void startDownload(final String url, int fileSize) {
+        public synchronized void startDownload(String url, int fileSize) {
             downloadTaskAll = downloadTaskAllMap.get(url);
             if (downloadTaskAll == null) {
                 //  downloadUrl=url;
@@ -196,8 +196,6 @@ public class DownloadService extends Service {
                 startForeground(i,getNotification(urlDownload.getFileName(),0));
                 //Toast.makeText(DownloadService.this, "Downloading...", Toast.LENGTH_SHORT).show();
             } else {
-
-
                 downloadTaskAll.download(url);
                 Toast.makeText(DownloadService.this,"继续下载",Toast.LENGTH_SHORT).show();
                // int length = sqlite.getURLDoanloadLen(url);
@@ -234,11 +232,15 @@ public class DownloadService extends Service {
                 DownloadTaskAll downloadTaskall = downloadTaskAllMap.get(url);
 
                 if (downloadTaskall != null) {
-                    downloadLenMap.remove(url);
                     downloadTaskall.setCancel(url);
+
+
+                    int id=downloadIdMap.get(url);
+                    getNotificationManager().cancel(id);
                     downloadIdMap.remove(url);
                     downloadTaskAllMap.remove(url);
                     alldownloadLenMap.remove(url);
+                    downloadLenMap.remove(url);
                 }
             }
 
@@ -264,6 +266,7 @@ public class DownloadService extends Service {
 
     @Override
     public void onDestroy() {
+        sqlite.closeDB();
         super.onDestroy();
     }
 }

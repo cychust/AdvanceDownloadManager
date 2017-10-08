@@ -24,6 +24,7 @@ import com.example.cyc.downloadproject.Data.Utils;
 import com.example.cyc.downloadproject.SQL.Sqlite;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 
 
@@ -138,6 +139,11 @@ public class DoneAdapter extends RecyclerView.Adapter<DoneAdapter.ViewHolder>
     public void onItemDalete(int position) {
         URLDownload urlDownload=tasklist.get(position);
         sqlite.deleteURLDownload(urlDownload.URLaddress);
+        File file=new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                .getPath()+urlDownload.getFileName());
+        if (file.exists()){
+            file.delete();
+        }
         tasklist.remove(position);
         notifyItemRemoved(position);
     }
