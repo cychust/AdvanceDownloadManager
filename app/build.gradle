@@ -33,4 +33,5 @@ dependencies {
     compile 'com.squareup.okhttp3:okhttp:3.4.1'
     compile 'com.android.support:design:26.0.0-alpha1'
     compile 'com.android.support:support-v4:26.0.0-alpha1'
+    compile 'com.sina.weibo.sdk:core:4.1.4:openDefaultRelease@aar'
 }

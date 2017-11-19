@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/AdvanceDownloadManager.iml" filepath="$PROJECT_DIR$/AdvanceDownloadManager.iml" />
       <module fileurl="file://$PROJECT_DIR$/DownloadProject.iml" filepath="$PROJECT_DIR$/DownloadProject.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
