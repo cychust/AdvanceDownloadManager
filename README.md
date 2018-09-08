@@ -1,22 +1,24 @@
 # AdvanceDownloadManager
-<<<<<<< HEAD
-###第一天实现基本界面
+
+### 第一天实现基本界面
 
 1. dialog中的editText起初点击软键盘不出现，解决
 2. Tablaout的学习与运用
 3. URL的使用，已实现单线程下载
 4.  ExpandListView的实现出现问题
 5.  实现判断文件类型和网址的合法性
-###今晚任务
+
+### 今晚任务
+
 * 解决ExpandListView
 =======
-####第一天实现基本界面
+
+#### 第一天实现基本界面
 1. dialog中的editText起初点击软键盘不出现，解决
 2. Tablaout的学习与运用
 3. URL的使用，已实现单线程下载
 4. ExpandListView的实现出现问题
 5. 实现判断文件类型和网址的合法性
->>>>>>> 644a05e33e70da7e6a10c37ba6807af4683ffdbc
 
 第二天基本没有进度：我回了趟家
 
